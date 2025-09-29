@@ -82,7 +82,7 @@ class ConfigManager {
             fs.ensureDirSync(tempDir)
 
             // 1. 创建目标文件夹结构（先在临时目录中操作）
-            const processPathDict = config.process[processKey]
+
             for (const env of config.envs) {
                 const envTargetPath = path.join(
                     tempDir,
@@ -96,7 +96,8 @@ class ConfigManager {
                 const targetFolderPath = path.join(envTargetPath, sourceFolderName)
                 fs.copySync(sourcePath, targetFolderPath)
 
-                const processPath = processPathDict[env]
+                // const processPath = processPathDict[env]
+                const processPath = config.backupAndUpdate.update[env];
                 const backupPath = config.backupAndUpdate.backup[env];
                 //获取最后一个文件夹名
                 const processName = path.basename(processPath);
@@ -143,14 +144,30 @@ class ConfigManager {
                 }
 
                 //3、生成更新脚本
-                /**
-                 * 更新脚本和备份脚本在相同路径下面
-                 * 更新脚本所在的文件夹有一个更新包名称是sourceDirName
-                 * 更新脚本的功能是将更新包的文件更新到processPath
-                 * 更新脚本需要将更新包的每个文件和processPath 的对应文件进行比较，在日志中记录是修改的还是新增的。
-                 * 更新脚本可以参考备份脚本进行实现
-                 * 更新脚本模板是template\update.sh
-                 */
+                //3、生成更新脚本 
+                /** 
+                * 更新脚本和备份脚本在相同路径下面 
+                * 更新脚本所在的文件夹有一个更新包名称是sourceDirName 
+                * 更新脚本的功能是将更新包的文件更新到processPath 
+                * 更新脚本需要将更新包的每个文件和processPath 的对应文件进行比较，在日志中记录是修改的还是新增的。 
+                * 更新脚本可以参考备份脚本进行实现 
+                * 更新脚本模板是template\update.sh 
+                */
+                const updateScriptTemp = "update.sh";
+                const updateScriptTargetPath = path.join(envTargetPath, updateScriptTemp)
+                const updateScriptTempPath = path.join(__dirname, '../../template', updateScriptTemp)
+                if (fs.existsSync(updateScriptTempPath)) {
+                    let content = fs.readFileSync(updateScriptTempPath, 'utf8')
+                    // 注入环境变量并确保跨平台路径
+                    const normalizedProcessPath = processPath.replace(/\\/g, '/').replace(/\/+$/, '')
+                    const normalizedPackageName = sourceDirName.replace(/\\/g, '/').replace(/\/+$/, '')
+                    content = content.replace(/{PROCESS_PATH}/g, normalizedProcessPath.replace(/^\/+/, '/'))
+                    content = content.replace(/{PROCESS_NAME}/g, processName)
+                    content = content.replace(/{PACKAGE_NAME}/g, normalizedPackageName)
+
+                    fs.writeFileSync(updateScriptTargetPath, content, { encoding: 'utf8' })
+                    fs.chmodSync(updateScriptTargetPath, 0o755)
+                }
 
             }
 

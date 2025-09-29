@@ -9,19 +9,13 @@
         "虚拟机",
         "现场"
     ],
-    "process": {
-        "web": {
-            "虚拟机": "/home/ysh/web/TJSmartOpe2/",
-            "现场": "//home/website/website2/TJSmartOpe2/"
-        }
-    },
     "backupAndUpdate": {
         "backup": {
             "虚拟机": "/home/ysh/web/webBackup/",
             "现场": "/home/ysh/web/webBackup/"
         },
         "update": {
-            "虚拟机": "/home/ysh/web/TJSmartOpe2/",
+            "虚拟机": "/home/ysh/web/testWeb/",
             "现场": "/home/ysh/web/TJSmartOpe2/"
         }
     }
