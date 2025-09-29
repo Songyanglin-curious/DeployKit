@@ -1,0 +1,38 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "strict": true,
+        "jsx": "preserve",
+        "sourceMap": true,
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "esModuleInterop": true,
+        "lib": [
+            "ESNext",
+            "DOM"
+        ],
+        "baseUrl": ".",
+        "paths": {
+            "@/*": [
+                "src/renderer/*"
+            ],
+            "@components/*": [
+                "src/renderer/components/*"
+            ],
+            "@views/*": [
+                "src/renderer/views/*"
+            ],
+            "@types/*": [
+                "src/renderer/types/*"
+            ]
+        },
+        "types": [
+            "vite/client"
+        ]
+    },
+    "include": [
+        "src"
+    ]
+}

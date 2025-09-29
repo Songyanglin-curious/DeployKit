@@ -18,6 +18,12 @@ class IPCHandler {
         ipcMain.handle('get-project-config', (event, projectName) => {
             return this.configManager.getProjectConfig(projectName)
         })
+        ipcMain.handle('get-select-folder-path', (event, options) => {
+            return this.configManager.getSelectFolderPath(options)
+        })
+        ipcMain.handle('generate-package', (event, sourcePath, targetPath, projectName, config, processKey) => {
+            return this.configManager.generatePackage(sourcePath, targetPath, projectName, config, processKey)
+        })
     }
 }
 

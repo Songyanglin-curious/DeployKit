@@ -1,15 +1,13 @@
 <template>
-    <HomeView />
-    <!-- <n-config-provider>
-    <n-message-provider>
-    
-    </n-message-provider>
-  </n-config-provider> -->
 
+
+    <n-message-provider>
+        <HomeView />
+    </n-message-provider>
 </template>
 
 <script setup lang="ts">
-import { NConfigProvider, NMessageProvider } from 'naive-ui'
+import { NMessageProvider } from 'naive-ui'
 import HomeView from '@/views/HomeView.vue'
 </script>
 

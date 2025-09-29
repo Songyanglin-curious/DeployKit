@@ -9,6 +9,12 @@
         "虚拟机",
         "现场"
     ],
+    "process": {
+        "web": {
+            "虚拟机": "/home/ysh/web/TJSmartOpe2/",
+            "现场": "//home/website/website2/TJSmartOpe2/"
+        }
+    },
     "backupAndUpdate": {
         "backup": {
             "虚拟机": "/home/ysh/web/webBackup/",

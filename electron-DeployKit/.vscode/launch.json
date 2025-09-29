@@ -1,38 +1,44 @@
 {
     "version": "0.2.0",
-    "compounds": [
-        {
-            "name": "Main + renderer",
-            "configurations": [
-                "Main",
-                "Renderer"
-            ],
-            "stopAll": true
-        }
-    ],
     "configurations": [
         {
-            "name": "Renderer",
-            "port": 9222,
-            "request": "attach",
-            "type": "chrome",
-            "webRoot": "${workspaceFolder}"
-        },
-        {
-            "name": "Main",
+            "name": "Debug Electron with Vite",
             "type": "node",
             "request": "launch",
-            "cwd": "${workspaceFolder}",
-            "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": ["run", "dev"],
             "windows": {
-                "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron.cmd"
+                "runtimeExecutable": "npm.cmd"
             },
-            "args": [
-                ".",
-                "--remote-debugging-port=9222"
-            ],
-            "outputCapture": "std",
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "outFiles": ["${workspaceFolder}/dist/**/*.js"],
+            "skipFiles": ["<node_internals>/**"],
+            "env": {
+                "NODE_ENV": "development",
+                "ELECTRON_IS_DEV": "true"
+            }
+        },
+        {
+            "name": "Attach to Renderer",
+            "type": "chrome",
+            "request": "attach",
+            "port": 9223,
+            "url": "http://localhost:3000",
+            "webRoot": "${workspaceFolder}/src/renderer",
+            "sourceMaps": true,
+            "sourceMapPathOverrides": {
+                "/@fs/*": "${webRoot}/*",
+                "/@id/*": "${webRoot}/*",
+                "/src/*": "${webRoot}/*",
+                "/node_modules/.vite/*": "${webRoot}/node_modules/*"
+            }
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Debug Main + Renderer",
+            "configurations": ["Debug Electron with Vite", "Attach to Renderer"]
         }
     ]
 }

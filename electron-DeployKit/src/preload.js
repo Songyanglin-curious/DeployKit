@@ -5,9 +5,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getConfigFiles: () => ipcRenderer.invoke('get-config-files'),
     getProjectConfig: (projectName) => ipcRenderer.invoke('get-project-config', projectName),
 
-    // 文件操作相关（后续扩展）
-    selectFolder: () => ipcRenderer.invoke('dialog:openFolder'),
 
-    // 脚本执行相关（后续扩展）
-    executeScript: (scriptType) => ipcRenderer.invoke('script:execute', scriptType)
+    getSelectFolderPath: (options) => ipcRenderer.invoke('get-select-folder-path', options),
+
+
+    generatePackage: (sourcePath, targetPath, projectName, config, processKey) => ipcRenderer.invoke('generate-package', sourcePath, targetPath, projectName, config, processKey)
 })
