@@ -144,15 +144,6 @@ class ConfigManager {
                 }
 
                 //3、生成更新脚本
-                //3、生成更新脚本 
-                /** 
-                * 更新脚本和备份脚本在相同路径下面 
-                * 更新脚本所在的文件夹有一个更新包名称是sourceDirName 
-                * 更新脚本的功能是将更新包的文件更新到processPath 
-                * 更新脚本需要将更新包的每个文件和processPath 的对应文件进行比较，在日志中记录是修改的还是新增的。 
-                * 更新脚本可以参考备份脚本进行实现 
-                * 更新脚本模板是template\update.sh 
-                */
                 const updateScriptTemp = "update.sh";
                 const updateScriptTargetPath = path.join(envTargetPath, updateScriptTemp)
                 const updateScriptTempPath = path.join(__dirname, '../../template', updateScriptTemp)
@@ -167,6 +158,26 @@ class ConfigManager {
 
                     fs.writeFileSync(updateScriptTargetPath, content, { encoding: 'utf8' })
                     fs.chmodSync(updateScriptTargetPath, 0o755)
+                }
+
+                //4、生成还原脚本
+                const restoreScriptTemp = "restore.sh";
+                const restoreScriptTargetPath = path.join(envTargetPath, restoreScriptTemp)
+                const restoreScriptTempPath = path.join(__dirname, '../../template', restoreScriptTemp)
+                if (fs.existsSync(restoreScriptTempPath)) {
+                    let content = fs.readFileSync(restoreScriptTempPath, 'utf8')
+                    fs.writeFileSync(restoreScriptTargetPath, content, { encoding: 'utf8' })
+                    fs.chmodSync(restoreScriptTargetPath, 0o755)
+                }
+
+                // 生成部署脚本
+                const deployScriptTemp = "deploy.sh";
+                const deployScriptTargetPath = path.join(envTargetPath, deployScriptTemp)
+                const deployScriptTempPath = path.join(__dirname, '../../template', deployScriptTemp)
+                if (fs.existsSync(deployScriptTempPath)) {
+                    let content = fs.readFileSync(deployScriptTempPath, 'utf8')
+                    fs.writeFileSync(deployScriptTargetPath, content, { encoding: 'utf8' })
+                    fs.chmodSync(deployScriptTargetPath, 0o755)
                 }
 
             }

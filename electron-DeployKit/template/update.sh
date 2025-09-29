@@ -7,6 +7,15 @@ echo "=== 更新任务开始 ===" > "$LOG_FILE"
 echo "[$(date +'%Y-%m-%d %H:%M:%S')] 更新脚本启动" >> "$LOG_FILE"
 echo "[$(date +'%Y-%m-%d %H:%M:%S')] 执行用户: $(whoami)" >> "$LOG_FILE"
 
+# 检查备份日志是否存在或为空
+if [ ! -f "backup.log" ] || [ ! -s "backup.log" ]; then
+    echo "错误: 没有找到备份日志或备份日志为空"
+    echo "请先执行备份脚本: bash backup.sh"
+    echo "[$(date +'%Y-%m-%d %H:%M:%S')] 错误: 没有找到备份日志或备份日志为空" >> "$LOG_FILE"
+    echo "[$(date +'%Y-%m-%d %H:%M:%S')] 更新任务终止" >> "$LOG_FILE"
+    exit 1
+fi
+
 PACKAGE_NAME="{PACKAGE_NAME}"
 PROCESS_PATH="{PROCESS_PATH}"
 PROCESS_NAME="{PROCESS_NAME}"
@@ -75,17 +84,17 @@ done < <(find "$PACKAGE_NAME" -type f -print0)
 # 添加统计信息
 echo "[$(date +'%Y-%m-%d %H:%M:%S')] === 更新统计 ===" >> "$LOG_FILE"
 echo "[$(date +'%Y-%m-%d %H:%M:%S')] 总文件数: $TOTAL_FILES" >> "$LOG_FILE"
-echo "[$(date +'%Y-%m-%d %H:%M:%S')] 更新文件: $UPDATED_FILES" >> "$LOG_FILE"
-echo "[$(date +'%Y-%m-%d %H:%M:%S')] 添加文件: $ADDED_FILES" >> "$LOG_FILE"
-echo "[$(date +'%Y-%m-%d %H:%M:%S')] 未更改文件: $UNCHANGED_FILES" >> "$LOG_FILE"
+echo "[$(date +'%Y-%m-%d %H:%M:%S')] 更新文件数: $UPDATED_FILES" >> "$LOG_FILE"
+echo "[$(date +'%Y-%m-%d %H:%M:%S')] 添加文件数: $ADDED_FILES" >> "$LOG_FILE"
+echo "[$(date +'%Y-%m-%d %H:%M:%S')] 未更改文件数: $UNCHANGED_FILES" >> "$LOG_FILE"
 
 # 控制台输出统计信息
 echo ""
 echo "=== 更新统计 ==="
 echo "总文件数: $TOTAL_FILES"
-echo "更新文件: $UPDATED_FILES"
-echo "添加文件: $ADDED_FILES"
-echo "未更改文件: $UNCHANGED_FILES"
+echo "更新文件数: $UPDATED_FILES"
+echo "添加文件数: $ADDED_FILES"
+echo "未更改文件数: $UNCHANGED_FILES"
 echo ""
 echo "更新任务完成"
 
