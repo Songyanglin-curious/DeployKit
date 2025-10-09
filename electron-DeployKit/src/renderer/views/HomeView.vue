@@ -37,7 +37,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useMessage } from 'naive-ui'
-import ConfigView from '@/components/ConfigView.vue'
+import ConfigView from '@components/ConfigView.vue'
 import { ConfigData } from '@/types/config'
 const message = useMessage()
 const loading = ref(false);
