@@ -2,11 +2,18 @@
 # 还原脚本
 # 用法: ./restore.sh
 
+# 颜色定义
+CYAN='\033[0;36m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
 LOG_FILE="restore.log"
 UPDATE_LOG="update.log"
 BACKUP_LOG="backup.log"
 
-echo "=== 还原任务开始 ===" > "$LOG_FILE"
+echo -e "${CYAN}=== 还原任务开始 ===" > "$LOG_FILE"
 echo "[$(date +'%Y-%m-%d %H:%M:%S')] 还原脚本启动" >> "$LOG_FILE"
 echo "[$(date +'%Y-%m-%d %H:%M:%S')] 执行用户: $(whoami)" >> "$LOG_FILE"
 
@@ -127,13 +134,13 @@ echo "[$(date +'%Y-%m-%d %H:%M:%S')] 跳过文件: $SKIPPED_FILES" >> "$LOG_FILE
 
 # 控制台输出统计信息
 echo ""
-echo "=== 还原统计 ==="
-echo "总文件数: $TOTAL_FILES"
-echo "还原文件: $RESTORED_FILES"
-echo "删除文件: $REMOVED_FILES"
-echo "跳过文件: $SKIPPED_FILES"
+echo -e "${CYAN}=== 还原统计 ==="
+echo -e "${CYAN}总文件数: $TOTAL_FILES"
+echo -e "${GREEN}还原文件: $RESTORED_FILES"
+echo -e "${RED}删除文件: $REMOVED_FILES"
+echo -e "${YELLOW}跳过文件: $SKIPPED_FILES"
 echo ""
-echo "还原任务完成"
+echo -e "${CYAN}还原任务完成${NC}"
 
 echo "[$(date +'%Y-%m-%d %H:%M:%S')] 还原任务完成" >> "$LOG_FILE"
 echo "[$(date +'%Y-%m-%d %H:%M:%S')] === 还原任务结束 ===" >> "$LOG_FILE"

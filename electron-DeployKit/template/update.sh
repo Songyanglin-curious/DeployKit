@@ -1,4 +1,11 @@
 #!/bin/bash
+
+# 颜色定义
+YELLOW='\033[0;33m'
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
 # 更新脚本
 # 用法: ./update.sh
 
@@ -9,8 +16,8 @@ echo "[$(date +'%Y-%m-%d %H:%M:%S')] 执行用户: $(whoami)" >> "$LOG_FILE"
 
 # 检查备份日志是否存在或为空
 if [ ! -f "backup.log" ] || [ ! -s "backup.log" ]; then
-    echo "错误: 没有找到备份日志或备份日志为空"
-    echo "请先执行备份脚本: bash backup.sh"
+    echo -e "${RED}错误: 没有找到备份日志或备份日志为空${NC}"
+    echo -e "${YELLOW}请先执行备份脚本: bash backup.sh${NC}"
     echo "[$(date +'%Y-%m-%d %H:%M:%S')] 错误: 没有找到备份日志或备份日志为空" >> "$LOG_FILE"
     echo "[$(date +'%Y-%m-%d %H:%M:%S')] 更新任务终止" >> "$LOG_FILE"
     exit 1
@@ -21,16 +28,16 @@ PROCESS_PATH="{PROCESS_PATH}"
 PROCESS_NAME="{PROCESS_NAME}"
 
 # 控制台输出
-echo "=== 开始更新 ==="
-echo "项目: $PROCESS_NAME"
-echo "更新目录: $PROCESS_PATH"
+echo -e "${YELLOW}=== 开始更新 ===${NC}"
+echo -e "${YELLOW}项目: $PROCESS_NAME${NC}"
+echo -e "${YELLOW}更新目录: $PROCESS_PATH${NC}"
 echo ""
 
 echo "[$(date +'%Y-%m-%d %H:%M:%S')] 项目名称: $PROCESS_NAME" >> "$LOG_FILE"
 echo "[$(date +'%Y-%m-%d %H:%M:%S')] 更新目录: $PROCESS_PATH" >> "$LOG_FILE"
 
 # 文件比较和更新逻辑
-echo "正在比较文件差异..."
+echo -e "${YELLOW}正在比较文件差异...${NC}"
 echo "[$(date +'%Y-%m-%d %H:%M:%S')] 开始比较文件差异..." >> "$LOG_FILE"
 
 # 初始化统计变量
@@ -57,14 +64,15 @@ while IFS= read -r -d '' file; do
             mkdir -p "$(dirname "$target_file")"
             # 更新文件并保留权限、时间戳等属性
             if cp -p "$file" "$target_file"; then
-                echo "更新文件: $rel_path"
+                echo -e "${GREEN}更新文件: $rel_path${NC}"
                 echo "[$(date +'%Y-%m-%d %H:%M:%S')] 更新文件: $rel_path (内容有变化)" >> "$LOG_FILE"
                 ((UPDATED_FILES++))
             else
+                echo -e "${RED}错误: 更新文件失败: $rel_path${NC}"
                 echo "[$(date +'%Y-%m-%d %H:%M:%S')] 错误: 更新文件失败: $rel_path" >> "$LOG_FILE"
             fi
         else
-            echo "跳过文件: $rel_path (无变化)"
+            echo -e "${YELLOW}跳过文件: $rel_path (无变化)${NC}"
             echo "[$(date +'%Y-%m-%d %H:%M:%S')] 跳过文件: $rel_path (内容无变化)" >> "$LOG_FILE"
             ((UNCHANGED_FILES++))
         fi
@@ -72,10 +80,11 @@ while IFS= read -r -d '' file; do
         # 创建新文件并保留权限
         mkdir -p "$(dirname "$target_file")"
         if cp -p "$file" "$target_file"; then
-            echo "添加文件: $rel_path"
+            echo -e "${GREEN}添加文件: $rel_path${NC}"
             echo "[$(date +'%Y-%m-%d %H:%M:%S')] 添加文件: $rel_path (新文件)" >> "$LOG_FILE"
             ((ADDED_FILES++))
         else
+            echo -e "${RED}错误: 添加文件失败: $rel_path${NC}"
             echo "[$(date +'%Y-%m-%d %H:%M:%S')] 错误: 添加文件失败: $rel_path" >> "$LOG_FILE"
         fi
     fi
@@ -90,13 +99,13 @@ echo "[$(date +'%Y-%m-%d %H:%M:%S')] 未更改文件数: $UNCHANGED_FILES" >> "$
 
 # 控制台输出统计信息
 echo ""
-echo "=== 更新统计 ==="
-echo "总文件数: $TOTAL_FILES"
-echo "更新文件数: $UPDATED_FILES"
-echo "添加文件数: $ADDED_FILES"
-echo "未更改文件数: $UNCHANGED_FILES"
+echo -e "${YELLOW}=== 更新统计 ===${NC}"
+echo -e "${YELLOW}总文件数: $TOTAL_FILES${NC}"
+echo -e "${GREEN}更新文件数: $UPDATED_FILES${NC}"
+echo -e "${GREEN}添加文件数: $ADDED_FILES${NC}"
+echo -e "${YELLOW}未更改文件数: $UNCHANGED_FILES${NC}"
 echo ""
-echo "更新任务完成"
+echo -e "${GREEN}更新任务完成${NC}"
 
 echo "[$(date +'%Y-%m-%d %H:%M:%S')] 更新任务完成" >> "$LOG_FILE"
 echo "[$(date +'%Y-%m-%d %H:%M:%S')] === 更新任务结束 ===" >> "$LOG_FILE"

@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# 颜色定义
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+RED='\033[0;31m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
 # 日志配置
 LOG_FILE="backup.log"
 echo "=== 备份任务开始 ===" > "$LOG_FILE"
@@ -23,7 +30,7 @@ echo "[$(date +'%Y-%m-%d %H:%M:%S')] 备份基目录: $BACKUP_BASE_DIR" >> "$LOG
 # 检查并创建备份目录（如果不存在）
 if [ ! -d "$BACKUP_BASE_DIR" ]; then
     mkdir -p "$BACKUP_BASE_DIR"
-    echo "创建备份目录: $BACKUP_BASE_DIR"
+    echo -e "${GREEN}创建备份目录: $BACKUP_BASE_DIR${NC}"
     echo "[$(date +'%Y-%m-%d %H:%M:%S')] 创建备份目录: $BACKUP_BASE_DIR" >> "$LOG_FILE"
 fi
 
@@ -49,7 +56,7 @@ done
 
 # 创建备份目录
 mkdir -p "$BACKUP_PATH"
-echo "开始备份，目标目录: $BACKUP_PATH"
+echo -e "${GREEN}开始备份，目标目录: $BACKUP_PATH${NC}"
 echo "[$(date +'%Y-%m-%d %H:%M:%S')] 备份目标目录: $BACKUP_PATH" >> "$LOG_FILE"
 
 # 需要备份的文件列表
@@ -63,23 +70,23 @@ for file in "${FILES_TO_BACKUP[@]}"; do
     if [ -f "$PROCESS_DIR/$file" ]; then
         mkdir -p "$(dirname "$BACKUP_PATH/$file")"
         if cp -v "$PROCESS_DIR/$file" "$BACKUP_PATH/$file" >> "$LOG_FILE" 2>&1; then
-            echo "已备份文件: $file"
+            echo -e "${GREEN}已备份文件: $file${NC}"
             echo "[$(date +'%Y-%m-%d %H:%M:%S')] 成功备份: $file" >> "$LOG_FILE"
             ((SUCCESS_FILES++))
         else
-            echo "错误: 文件 $file 备份失败"
+            echo -e "${RED}错误: 文件 $file 备份失败${NC}"
             echo "[$(date +'%Y-%m-%d %H:%M:%S')] 备份失败: $file" >> "$LOG_FILE"
             ((FAILED_FILES++))
         fi
     else
-        echo "警告: 文件 $file 不存在，跳过"
+        echo -e "${YELLOW}警告: 文件 $file 不存在，跳过${NC}"
         echo "[$(date +'%Y-%m-%d %H:%M:%S')] 文件不存在: $file" >> "$LOG_FILE"
         ((SKIPPED_FILES++))
     fi
 done
 
 # 备份结果统计
-echo "备份完成! 文件保存在: $BACKUP_PATH"
+echo -e "${GREEN}备份完成! 文件保存在: $BACKUP_PATH${NC}"
 echo "[$(date +'%Y-%m-%d %H:%M:%S')] === 备份统计 ===" >> "$LOG_FILE"
 echo "[$(date +'%Y-%m-%d %H:%M:%S')] 总文件数: $TOTAL_FILES" >> "$LOG_FILE"
 echo "[$(date +'%Y-%m-%d %H:%M:%S')] 成功备份: $SUCCESS_FILES" >> "$LOG_FILE"

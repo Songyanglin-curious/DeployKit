@@ -1,39 +1,61 @@
 const fs = require('fs')
 const path = require('path')
-const { app, BrowserWindow, ipcMain, dialog } = require('electron')
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+
+const SimpleLogger = require('./logger');
+const productionResourcesPath = path.dirname(app.getAppPath());
 class ConfigManager {
     constructor() {
+        this.isDev = process.env.NODE_ENV === 'development'
+
+        this.logger = new SimpleLogger(app)
         this.configPath = this.getConfigPath()
     }
 
     getConfigPath() {
-        const isDev = process.env.NODE_ENV === 'development'
-        return isDev
+        const configPath = this.isDev
             ? path.join(process.cwd(), 'config')
-            : path.join(process.cwd(), 'resources/config')
+            : path.join(productionResourcesPath, 'config')
+        this.logger.info('config:' + configPath)
+        return configPath
     }
-
     getConfigFiles() {
         try {
-            const files = fs.readdirSync(this.configPath)
-            return files
+            const files = fs.readdirSync(this.configPath, { encoding: 'utf8' })
+            const result = files
                 .filter(file => file.endsWith('.json'))
-                .map(file => path.basename(file, '.json'))
+                .map(file => {
+                    this.logger.info('配置文件名:' + file)
+                    const filename = path.basename(file, '.json')
+                    // 生产环境需要Buffer处理中文
+                    const decodedName = filename
+                    return decodedName
+                })
+            return result
         } catch (error) {
-            console.error('读取配置文件失败:', error)
+            this.logger.error('错误详情:', {
+                configPath: this.configPath,
+                error: error.message,
+                stack: error.stack
+            })
             return []
         }
     }
 
     getProjectConfig(projectName) {
         try {
-            const configFile = path.join(this.configPath, `${projectName}.json`)
+            // 确保projectName正确编码
+            const decodedName = Buffer.isBuffer(projectName)
+                ? projectName.toString('utf8')
+                : projectName
+            const configFile = path.join(this.configPath, `${decodedName}.json`)
             if (fs.existsSync(configFile)) {
-                return JSON.parse(fs.readFileSync(configFile, 'utf8'))
+                const content = fs.readFileSync(configFile, 'utf8')
+                return JSON.parse(content)
             }
             return null
         } catch (error) {
-            console.error('读取项目配置失败:', error)
+            this.logger.error('读取项目配置失败:', error)
             return null
         }
     }
@@ -60,7 +82,7 @@ class ConfigManager {
 
 
         } catch (error) {
-            console.error('打开目录对话框失败:', error);
+
             return {
                 success: false,
                 message: `无法打开目录对话框: ${error.message}`,
@@ -70,8 +92,12 @@ class ConfigManager {
         }
     }
     async generatePackage(sourcePath, targetPath, projectName, config, processKey) {
-        console.log('开始生成打包文件')
+        this.logger.info('开始生成打包文件')
         const fs = require('fs-extra')
+        // 确保projectName正确编码
+        const decodedName = Buffer.isBuffer(projectName)
+            ? projectName.toString('utf8')
+            : projectName
         const sourceDirName = path.basename(sourcePath)
         const tempDir = path.join(targetPath, `temp_${Date.now()}`)
         const createdDirs = []
@@ -86,7 +112,7 @@ class ConfigManager {
             for (const env of config.envs) {
                 const envTargetPath = path.join(
                     tempDir,
-                    `${projectName}_${env}`
+                    `${decodedName}_${env}`
                 )
                 fs.ensureDirSync(envTargetPath)
                 createdDirs.push(envTargetPath)
@@ -105,7 +131,12 @@ class ConfigManager {
                 //2. 生成备份脚本
                 const backupScriptTemp = "backup.sh";
                 const scriptTargetPath = path.join(envTargetPath, backupScriptTemp)
-                const backupScriptTempPath = path.join(__dirname, '../../template', backupScriptTemp)
+                const backupScriptTempPath = path.join(
+                    this.isDev
+                        ? path.join(process.cwd(), 'template')
+                        : path.join(productionResourcesPath, "template"),
+                    backupScriptTemp
+                )
                 if (fs.existsSync(backupScriptTempPath)) {
                     let content = fs.readFileSync(backupScriptTempPath, 'utf8')
                     // 注入环境变量并确保跨平台路径
@@ -146,7 +177,12 @@ class ConfigManager {
                 //3、生成更新脚本
                 const updateScriptTemp = "update.sh";
                 const updateScriptTargetPath = path.join(envTargetPath, updateScriptTemp)
-                const updateScriptTempPath = path.join(__dirname, '../../template', updateScriptTemp)
+                const updateScriptTempPath = path.join(
+                    this.isDev
+                        ? path.join(process.cwd(), 'template')
+                        : path.join(productionResourcesPath, 'template'),
+                    updateScriptTemp
+                )
                 if (fs.existsSync(updateScriptTempPath)) {
                     let content = fs.readFileSync(updateScriptTempPath, 'utf8')
                     // 注入环境变量并确保跨平台路径
@@ -163,7 +199,12 @@ class ConfigManager {
                 //4、生成还原脚本
                 const restoreScriptTemp = "restore.sh";
                 const restoreScriptTargetPath = path.join(envTargetPath, restoreScriptTemp)
-                const restoreScriptTempPath = path.join(__dirname, '../../template', restoreScriptTemp)
+                const restoreScriptTempPath = path.join(
+                    this.isDev
+                        ? path.join(process.cwd(), 'template')
+                        : path.join(productionResourcesPath, 'template'),
+                    restoreScriptTemp
+                )
                 if (fs.existsSync(restoreScriptTempPath)) {
                     let content = fs.readFileSync(restoreScriptTempPath, 'utf8')
                     fs.writeFileSync(restoreScriptTargetPath, content, { encoding: 'utf8' })
@@ -173,7 +214,12 @@ class ConfigManager {
                 // 生成部署脚本
                 const deployScriptTemp = "deploy.sh";
                 const deployScriptTargetPath = path.join(envTargetPath, deployScriptTemp)
-                const deployScriptTempPath = path.join(__dirname, '../../template', deployScriptTemp)
+                const deployScriptTempPath = path.join(
+                    this.isDev
+                        ? path.join(process.cwd(), 'template')
+                        : path.join(productionResourcesPath, 'template'),
+                    deployScriptTemp
+                )
                 if (fs.existsSync(deployScriptTempPath)) {
                     let content = fs.readFileSync(deployScriptTempPath, 'utf8')
                     fs.writeFileSync(deployScriptTargetPath, content, { encoding: 'utf8' })
@@ -192,7 +238,7 @@ class ConfigManager {
             success = true
             return { success: true, message: '打包文件生成成功' }
         } catch (error) {
-            console.error('生成打包文件失败:', error)
+            this.logger.error('生成打包文件失败:', error)
             // 回滚：删除已创建的目录
             try {
                 for (const dir of createdDirs) {
@@ -200,7 +246,7 @@ class ConfigManager {
                 }
                 if (fs.existsSync(tempDir)) fs.removeSync(tempDir)
             } catch (cleanupError) {
-                console.error('清理临时文件失败:', cleanupError)
+                this.logger.error('清理临时文件失败:', cleanupError)
             }
 
             return {
