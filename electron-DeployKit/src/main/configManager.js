@@ -1,23 +1,41 @@
-const fs = require('fs')
-const path = require('path')
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 
-const SimpleLogger = require('./logger');
-const productionResourcesPath = path.dirname(app.getAppPath());
+
+import { app, dialog } from 'electron'
+import { fileURLToPath } from 'node:url'
+import { dirname, join, basename, posix } from 'node:path'
+
+import fs from 'fs-extra'    // ✅ 第三方库需支持 ESM（fs-extra v10+ 支持）
+
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
+
+const productionResourcesPath = dirname(app.getAppPath());
 class ConfigManager {
-    constructor() {
+    constructor(logger) {
         this.isDev = process.env.NODE_ENV === 'development'
-
-        this.logger = new SimpleLogger(app)
+        this.logger = logger
         this.configPath = this.getConfigPath()
     }
 
     getConfigPath() {
-        const configPath = this.isDev
-            ? path.join(process.cwd(), 'config')
-            : path.join(productionResourcesPath, 'config')
-        this.logger.info('config:' + configPath)
-        return configPath
+        try {
+            const configPath = this.isDev
+                ? join(process.cwd(), 'config')
+                : join(productionResourcesPath, 'config')
+            
+            this.logger.info('config:' + configPath)
+            
+            if (!this.isDev && !fs.existsSync(configPath)) {
+                this.logger.error('Config directory not found at:' + configPath)
+                throw new Error('Config directory not found')
+            }
+            
+            return configPath
+        } catch (err) {
+            this.logger.error('Failed to get config path:', err)
+            throw err
+        }
     }
     getConfigFiles() {
         try {
@@ -26,7 +44,7 @@ class ConfigManager {
                 .filter(file => file.endsWith('.json'))
                 .map(file => {
                     this.logger.info('配置文件名:' + file)
-                    const filename = path.basename(file, '.json')
+                    const filename = basename(file, '.json')
                     // 生产环境需要Buffer处理中文
                     const decodedName = filename
                     return decodedName
@@ -48,7 +66,7 @@ class ConfigManager {
             const decodedName = Buffer.isBuffer(projectName)
                 ? projectName.toString('utf8')
                 : projectName
-            const configFile = path.join(this.configPath, `${decodedName}.json`)
+            const configFile = join(this.configPath, `${decodedName}.json`)
             if (fs.existsSync(configFile)) {
                 const content = fs.readFileSync(configFile, 'utf8')
                 return JSON.parse(content)
@@ -93,13 +111,13 @@ class ConfigManager {
     }
     async generatePackage(sourcePath, targetPath, projectName, config, processKey) {
         this.logger.info('开始生成打包文件')
-        const fs = require('fs-extra')
+
         // 确保projectName正确编码
         const decodedName = Buffer.isBuffer(projectName)
             ? projectName.toString('utf8')
             : projectName
-        const sourceDirName = path.basename(sourcePath)
-        const tempDir = path.join(targetPath, `temp_${Date.now()}`)
+        const sourceDirName = basename(sourcePath)
+        const tempDir = join(targetPath, `temp_${Date.now()}`)
         const createdDirs = []
         let success = false
 
@@ -110,7 +128,7 @@ class ConfigManager {
             // 1. 创建目标文件夹结构（先在临时目录中操作）
 
             for (const env of config.envs) {
-                const envTargetPath = path.join(
+                const envTargetPath = join(
                     tempDir,
                     `${decodedName}_${env}`
                 )
@@ -118,23 +136,23 @@ class ConfigManager {
                 createdDirs.push(envTargetPath)
 
                 // 拷贝sourcePath文件夹到envTargetPath
-                const sourceFolderName = path.basename(sourcePath)
-                const targetFolderPath = path.join(envTargetPath, sourceFolderName)
+                const sourceFolderName = basename(sourcePath)
+                const targetFolderPath = join(envTargetPath, sourceFolderName)
                 fs.copySync(sourcePath, targetFolderPath)
 
                 // const processPath = processPathDict[env]
                 const processPath = config.backupAndUpdate.update[env];
                 const backupPath = config.backupAndUpdate.backup[env];
                 //获取最后一个文件夹名
-                const processName = path.basename(processPath);
+                const processName = basename(processPath);
 
                 //2. 生成备份脚本
                 const backupScriptTemp = "backup.sh";
-                const scriptTargetPath = path.join(envTargetPath, backupScriptTemp)
-                const backupScriptTempPath = path.join(
+                const scriptTargetPath = join(envTargetPath, backupScriptTemp)
+                const backupScriptTempPath = join(
                     this.isDev
-                        ? path.join(process.cwd(), 'template')
-                        : path.join(productionResourcesPath, "template"),
+                        ? join(process.cwd(), 'template')
+                        : join(productionResourcesPath, "template"),
                     backupScriptTemp
                 )
                 if (fs.existsSync(backupScriptTempPath)) {
@@ -151,8 +169,8 @@ class ConfigManager {
                     const walkDir = (dir, relativePath = '') => {
                         const entries = fs.readdirSync(dir, { withFileTypes: true })
                         for (const entry of entries) {
-                            const fullPath = path.join(dir, entry.name)
-                            const relPath = relativePath ? path.posix.join(relativePath, entry.name) : entry.name
+                            const fullPath = join(dir, entry.name)
+                            const relPath = relativePath ? posix.join(relativePath, entry.name) : entry.name
 
                             if (entry.isDirectory()) {
                                 walkDir(fullPath, relPath)
@@ -176,11 +194,11 @@ class ConfigManager {
 
                 //3、生成更新脚本
                 const updateScriptTemp = "update.sh";
-                const updateScriptTargetPath = path.join(envTargetPath, updateScriptTemp)
-                const updateScriptTempPath = path.join(
+                const updateScriptTargetPath = join(envTargetPath, updateScriptTemp)
+                const updateScriptTempPath = join(
                     this.isDev
-                        ? path.join(process.cwd(), 'template')
-                        : path.join(productionResourcesPath, 'template'),
+                        ? join(process.cwd(), 'template')
+                        : join(productionResourcesPath, 'template'),
                     updateScriptTemp
                 )
                 if (fs.existsSync(updateScriptTempPath)) {
@@ -198,11 +216,11 @@ class ConfigManager {
 
                 //4、生成还原脚本
                 const restoreScriptTemp = "restore.sh";
-                const restoreScriptTargetPath = path.join(envTargetPath, restoreScriptTemp)
-                const restoreScriptTempPath = path.join(
+                const restoreScriptTargetPath = join(envTargetPath, restoreScriptTemp)
+                const restoreScriptTempPath = join(
                     this.isDev
-                        ? path.join(process.cwd(), 'template')
-                        : path.join(productionResourcesPath, 'template'),
+                        ? join(process.cwd(), 'template')
+                        : join(productionResourcesPath, 'template'),
                     restoreScriptTemp
                 )
                 if (fs.existsSync(restoreScriptTempPath)) {
@@ -213,11 +231,11 @@ class ConfigManager {
 
                 // 生成部署脚本
                 const deployScriptTemp = "deploy.sh";
-                const deployScriptTargetPath = path.join(envTargetPath, deployScriptTemp)
-                const deployScriptTempPath = path.join(
+                const deployScriptTargetPath = join(envTargetPath, deployScriptTemp)
+                const deployScriptTempPath = join(
                     this.isDev
-                        ? path.join(process.cwd(), 'template')
-                        : path.join(productionResourcesPath, 'template'),
+                        ? join(process.cwd(), 'template')
+                        : join(productionResourcesPath, 'template'),
                     deployScriptTemp
                 )
                 if (fs.existsSync(deployScriptTempPath)) {
@@ -230,7 +248,7 @@ class ConfigManager {
 
             // 所有操作成功，将临时目录移动到目标位置
             for (const dir of createdDirs) {
-                const finalPath = path.join(targetPath, path.basename(dir))
+                const finalPath = join(targetPath, basename(dir))
                 fs.moveSync(dir, finalPath, { overwrite: true })
             }
             fs.removeSync(tempDir)
@@ -262,4 +280,4 @@ class ConfigManager {
     }
 }
 
-module.exports = ConfigManager
+export default ConfigManager

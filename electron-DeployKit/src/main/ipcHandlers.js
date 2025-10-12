@@ -1,4 +1,4 @@
-const { ipcMain } = require('electron')
+import { ipcMain } from 'electron'
 
 class IPCHandler {
     static init(configManager) {
@@ -27,4 +27,4 @@ class IPCHandler {
     }
 }
 
-module.exports = IPCHandler
+export default IPCHandler

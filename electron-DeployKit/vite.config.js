@@ -5,6 +5,24 @@ import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 import { fileURLToPath, URL } from 'node:url'
+import { join } from 'node:path'
+import { existsSync, mkdirSync, copyFileSync } from 'node:fs'
+// 构建后复制 preload.js
+function copyPreloadPlugin() {
+    return {
+        name: 'copy-preload',
+        closeBundle() {
+            const src = fileURLToPath(new URL('./src/main/preload.js', import.meta.url))
+            const destDir = fileURLToPath(new URL('./dist-electron', import.meta.url))
+            const dest = join(destDir, 'preload.js')
+
+            if (!existsSync(destDir)) mkdirSync(destDir, { recursive: true })
+            copyFileSync(src, dest)
+            console.log('✅ Copied preload.js to dist-electron')
+        }
+    }
+}
+
 
 export default defineConfig({
     plugins: [
@@ -22,8 +40,20 @@ export default defineConfig({
             onstart(args) {
                 args.startup(['.', '--remote-debugging-port=9223'])
             },
-            // 启用Vite开发服务器
             vite: {
+                build: {
+                    minify: false,
+                    rollupOptions: {
+                        external: ['electron'],
+                    },
+                    assetsInclude: ['src/main/**/*'],
+                    terserOptions: {
+                        compress: false,
+                        mangle: false,
+                        keep_classnames: true,
+                        keep_fnames: true
+                    }
+                },
                 server: {
                     hmr: true
                 }
@@ -37,6 +67,7 @@ export default defineConfig({
             resolvers: [ElementPlusResolver({ importStyle: 'sass' })],
             dts: 'src/components.d.ts'
         }),
+        copyPreloadPlugin()
     ],
     /**
      * base: './' 表示：打包后的所有资源（JS、CSS、图片等）都使用「相对于当前 HTML 文件所在目录」的路径来引用。
@@ -71,12 +102,18 @@ export default defineConfig({
     },
     build: {
         // 输出路径
-        outDir: fileURLToPath(new URL('./dist', import.meta.url)),
+        outDir: fileURLToPath(new URL('./renderer-dist', import.meta.url)),
         // 关闭清空输出目录警告的
         emptyOutDir: true,
         sourcemap: true,
-        // 设置为 false 可以禁用最小化混淆
-        minify: false
+        // 完全禁用所有压缩和混淆
+        minify: false,
+        terserOptions: {
+            compress: false,
+            mangle: false,
+            keep_classnames: true,
+            keep_fnames: true
+        }
     },
     // 别名 目前只有@别名ts人其它的别名ts会有红色波浪线
     resolve: {

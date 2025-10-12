@@ -2,12 +2,12 @@
     "name": "electron-deploykit",
     "version": "0.0.1",
     "description": "更新包生成程序demo版本",
-    "main": "./src/main/main.js",
+    "main": "dist-electron/main.js",
     "scripts": {
         "dev": "cross-env NODE_ENV=development vite dev",
         "build": "vite build",
         "preview": "vite preview",
-        "dist": "npm run build && electron-builder"
+        "dist": "cross-env ELECTRON_BUILDER_CACHE=./.cache/eb TMP=./.cache/tmp TEMP=./.cache/tmp npm run build && electron-builder"
     },
     "author": "songyanglin",
     "license": "ISC",
@@ -18,7 +18,7 @@
         "@vitejs/plugin-vue": "^6.0.1",
         "cross-env": "^10.0.0",
         "electron": "^38.1.2",
-        "electron-builder": "^26.0.12",
+        "electron-builder": "^25.1.8",
         "sass": "^1.93.2",
         "unplugin-auto-import": "^20.2.0",
         "unplugin-vue-components": "^29.1.0",
@@ -26,6 +26,7 @@
         "vite-plugin-electron": "^0.14.0"
     },
     "dependencies": {
+        "electron-log": "^5.4.3",
         "fs-extra": "^11.2.0",
         "naive-ui": "^2.43.1",
         "vue": "^3.5.22"

@@ -1,7 +1,16 @@
-const { BrowserWindow } = require('electron')
-const path = require('path')
+import { app, BrowserWindow } from 'electron'
+import { fileURLToPath } from 'node:url'
+import { dirname, join } from 'node:path'
+import fs from 'fs-extra'
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 class WindowManager {
+    constructor(logger) {
+
+        this.logger = logger
+
+    }
     createMainWindow() {
         const isDev = process.env.NODE_ENV === 'development'
 
@@ -9,7 +18,9 @@ class WindowManager {
             width: 1000,
             height: 700,
             webPreferences: {
-                preload: path.join(__dirname, '../preload.js'),
+                preload: isDev
+                    ? join(__dirname, 'preload.js')
+                    : join(app.getAppPath(), 'dist-electron/preload.js'),
                 contextIsolation: true,
                 enableRemoteModule: false,
                 nodeIntegration: false,
@@ -28,7 +39,30 @@ class WindowManager {
                 }, 500)
             })
         } else {
-            win.loadFile(path.join(__dirname, '../../dist/index.html'))
+            try {
+                // 生产环境下使用app.getAppPath()获取正确路径
+                this.logger.info("start createMainWindow");
+                const appPath = app.getAppPath();
+                this.logger.info("appPath:" + appPath);
+                const indexPath = join(appPath, 'renderer-dist/index.html');
+                this.logger.info("indexPath:" + indexPath);
+
+                if (!fs.existsSync(indexPath)) {
+                    this.logger.error("Index file not found at:" + indexPath);
+                    throw new Error("Index file not found");
+                }
+
+                win.loadFile(indexPath).catch(err => {
+                    this.logger.error("Failed to load index file:", err);
+                    throw err;
+                });
+
+                // 生产环境也打开开发者工具用于调试
+                win.webContents.openDevTools({ mode: 'detach' });
+            } catch (err) {
+                this.logger.error("Failed to create main window in production:", err);
+                app.quit();
+            }
         }
 
         this.mainWindow = win
@@ -36,4 +70,4 @@ class WindowManager {
     }
 }
 
-module.exports = WindowManager
+export default WindowManager
