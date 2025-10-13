@@ -6,9 +6,9 @@ import fs from 'fs-extra'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 class WindowManager {
-    constructor(logger) {
+    constructor(log) {
 
-        this.logger = logger
+        this.log = log
 
     }
     createMainWindow() {

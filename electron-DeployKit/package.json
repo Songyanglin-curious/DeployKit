@@ -7,7 +7,8 @@
         "dev": "cross-env NODE_ENV=development vite dev",
         "build": "vite build",
         "preview": "vite preview",
-        "dist": "cross-env ELECTRON_BUILDER_CACHE=./.cache/eb TMP=./.cache/tmp TEMP=./.cache/tmp npm run build && electron-builder"
+        "dist1": "cross-env ELECTRON_BUILDER_CACHE=./.cache/eb TMP=./.cache/tmp TEMP=./.cache/tmp npm run build && electron-builder",
+        "dist": " npm run build && electron-builder"
     },
     "author": "songyanglin",
     "license": "ISC",

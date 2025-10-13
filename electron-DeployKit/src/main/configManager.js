@@ -12,9 +12,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const productionResourcesPath = dirname(app.getAppPath());
 class ConfigManager {
-    constructor(logger) {
+    constructor(log) {
         this.isDev = process.env.NODE_ENV === 'development'
-        this.logger = logger
+        this.log = log
         this.configPath = this.getConfigPath()
     }
 
@@ -24,16 +24,16 @@ class ConfigManager {
                 ? join(process.cwd(), 'config')
                 : join(productionResourcesPath, 'config')
             
-            this.logger.info('config:' + configPath)
+            this.log.info('config:' + configPath)
             
             if (!this.isDev && !fs.existsSync(configPath)) {
-                this.logger.error('Config directory not found at:' + configPath)
+                this.log.error('Config directory not found at:' + configPath)
                 throw new Error('Config directory not found')
             }
             
             return configPath
         } catch (err) {
-            this.logger.error('Failed to get config path:', err)
+            this.log.error('Failed to get config path:', err)
             throw err
         }
     }
@@ -43,7 +43,7 @@ class ConfigManager {
             const result = files
                 .filter(file => file.endsWith('.json'))
                 .map(file => {
-                    this.logger.info('配置文件名:' + file)
+                    this.log.info('配置文件名:' + file)
                     const filename = basename(file, '.json')
                     // 生产环境需要Buffer处理中文
                     const decodedName = filename
@@ -51,7 +51,7 @@ class ConfigManager {
                 })
             return result
         } catch (error) {
-            this.logger.error('错误详情:', {
+            this.log.error('错误详情:', {
                 configPath: this.configPath,
                 error: error.message,
                 stack: error.stack
@@ -73,7 +73,7 @@ class ConfigManager {
             }
             return null
         } catch (error) {
-            this.logger.error('读取项目配置失败:', error)
+            this.log.error('读取项目配置失败:', error)
             return null
         }
     }
@@ -110,7 +110,7 @@ class ConfigManager {
         }
     }
     async generatePackage(sourcePath, targetPath, projectName, config, processKey) {
-        this.logger.info('开始生成打包文件')
+        this.log.info('开始生成打包文件')
 
         // 确保projectName正确编码
         const decodedName = Buffer.isBuffer(projectName)
@@ -256,7 +256,7 @@ class ConfigManager {
             success = true
             return { success: true, message: '打包文件生成成功' }
         } catch (error) {
-            this.logger.error('生成打包文件失败:', error)
+            this.log.error('生成打包文件失败:', error)
             // 回滚：删除已创建的目录
             try {
                 for (const dir of createdDirs) {
@@ -264,7 +264,7 @@ class ConfigManager {
                 }
                 if (fs.existsSync(tempDir)) fs.removeSync(tempDir)
             } catch (cleanupError) {
-                this.logger.error('清理临时文件失败:', cleanupError)
+                this.log.error('清理临时文件失败:', cleanupError)
             }
 
             return {
