@@ -1,51 +1,58 @@
-# Electron的西天取经
+# Electron 的西天取经
 
-> 本人由于是做web的，最近想写点小工具需要用到一些系统API就选择了比较成熟的Electron结果业务写了三小时各种环境配置、镜像、文件引不进去，打包配置有问题，路径不对，包体积过大，打包时文件被锁定等等等等折腾了我将近3天才搞定。写这篇笔记以记录这一路的磨难。
+> 我本身是做 Web 开发的，最近需要写个小工具，调用一些系统 API，就选择了比较成熟的 Electron。结果业务代码写了三小时，环境配置、镜像、文件引用、打包路径、体积过大、文件被锁定……各种问题却折腾了将近三天。写下这篇笔记，记录这一路的坎坷。
 
-## 第一难：按照官方文档搭建项目搭不起来
+## 第一难：官方文档搭不起项目
 
-运行以下的命令初始化项目：
+按照官方说明初始化项目：
 
 ```
 npm init
 npm install electron --save-dev
 ```
 
-然后问题就来了，**装不上**。
-此时还不知道问题所在，初步猜测是国内网络的问题，解决方案就是开梯子，但是我不想一直开梯子开发，然后就查文档在[安装指导 | Electron自定义镜像和缓存](https://www.electronjs.org/zh/docs/latest/tutorial/installation#%E8%87%AA%E5%AE%9A%E4%B9%89%E9%95%9C%E5%83%8F%E5%92%8C%E7%BC%93%E5%AD%98)发现了electron要配置镜像。
+结果第一步就卡住了——**装不上**。
 
-那就配置吧
+初步猜测是网络问题。虽然开梯子能解决，但不想一直挂着。查阅文档后发现，Electron 在国内需要配置镜像。
 
-1. 找到 `.npmrc`文件  通过 `npm config list`命令找到返回里面的 `user`字段就是本机npm配置文件所在
-2. 在里面写入 `electron_mirror=https://npmmirror.com/mirrors/electron/` Electron镜像配置好了
+于是动手配置：
 
-**小结**
-
-其实这个问题在国内开发很常见，就是配置镜像有时会让人很心烦。
-
-## 第二难：引入vue和vite
-
-项目搭建完成后，按照官方的文档一步步完成了最初的项目搭建，这一步官方文档还是不错的给的例子都能跑。
-
-然后问题来了，官方给的例子没有热更新 用起来很不方便。官方给的例子是原生的页面开发效率比较低，我用Electron不就是为了前端生态吗，所以我要用vue来替换现有的页面开发，既然用了vue那么当然要用vite  既然用了vite那么当然要用 `vite-plugin-electron`一整套换掉。
-
-因此问题来了 要转变思维方式 旧的方式是加载文件但是新的方式是加载vite给前端页面的 `win.loadURL('http://localhost:3000')`
-
-还有 开发环境和打包后环境不一致  要引入环境变量然后对不同的环境做分发。于是要引入添加环境变量的方式 ，一圈搜索后确定通过 `cross-env`来实现 `"dev": "cross-env NODE_ENV=development vite dev",`
+1. 找到 `.npmrc` 文件，路径可通过 `npm config list` 查看 `user` 字段；
+2. 加入镜像地址：`electron_mirror=https://npmmirror.com/mirrors/electron/`
 
 **小结**
 
-其实这一步逻辑上来说不难，卡住的地方就是得一步步看文档还有得理解Electron是两个进程协调工作的，前端最终跑的还是编译后的html、js；还是回到了原本的Electron开发方式，就是得梳理清楚这整个关系，将整个过程抽象成一个接口流程，然后满足接口后里面的东西就可以随便改了。
+国内开发环境配置镜像算是常规操作，只是初次接触时容易让人心烦。
 
-## 第三难：如何debugger呢
+## 第二难：引入 Vue 与 Vite
 
-现在页面跑起来了，但是前端开发工具怎么打开，后端的接口怎么打断点，没这些功能我完全无法开发。
+官方示例虽然能运行，但没有热更新，开发效率低。既然选择了 Electron，自然要利用前端生态，于是决定引入 Vue 和 Vite，配合 `vite-plugin-electron` 替换原有结构。
 
-首先先把前端页面的开发工具页面调出来，在初始化 `BrowserWindow`时加上 `win.webContents.openDevTools({ mode:'detach' })`在项目跑起来后就会直接打开，但是一部小心关掉了呢？这时需要一个快捷键来打开 `Ctrl + Shift + I` 。
+思维方式需要转变：原本是加载本地 HTML 文件，现在则要加载 Vite 启动的本地服务：`win.loadURL('http://localhost:3000')`。
 
-然后就是后端了，后端我用的vscode就需要配置 `launch.json`这说难也不难就是挺烦的。
+另一个问题是开发环境与生产环境的差异，需要引入环境变量。最终使用 `cross-env` 实现：
 
-具体参考如下：
+```json
+"dev": "cross-env NODE_ENV=development vite dev",
+```
+
+**小结**
+
+逻辑上并不复杂，关键在于理解 Electron 分为主进程与渲染进程，最终前端跑的还是编译后的 HTML 与 JS。理清整个流程后，内部实现就可以灵活替换。
+
+## 第三难：如何调试？
+
+页面跑起来了，但怎么打开开发者工具？后端代码如何打断点？
+
+首先在创建 `BrowserWindow` 时加上：
+
+```js
+win.webContents.openDevTools({ mode: 'detach' })
+```
+
+这样启动时就会自动打开调试工具。如果不小心关掉了，还可以用 `Ctrl + Shift + I` 重新打开。
+
+主进程调试需要在 VSCode 中配置 `launch.json`，虽然不复杂，但配置起来略繁琐：
 
 ```json
 {
@@ -94,72 +101,40 @@ npm install electron --save-dev
 }
 ```
 
-vite 配置也要对着配 `vite.config`
-
-```js
-electron({
-            entry: fileURLToPath(new URL('./src/main/main.js', import.meta.url)),
-            onstart(args) {
-                args.startup(['.', '--remote-debugging-port=9223'])
-            },
-            vite: {
-                build: {
-                    minify: false,
-                    rollupOptions: {
-                        external: ['electron'],
-                    },
-                    assetsInclude: ['src/main/**/*'],
-                    terserOptions: {
-                        compress: false,
-                        mangle: false,
-                        keep_classnames: true,
-                        keep_fnames: true
-                    }
-                },
-                server: {
-                    hmr: true
-                }
-            }
-        }),
-```
+同时 Vite 配置也要配合调整端口与调试参数。
 
 **小结**
 
-前端渲染的开发工具配置就是得找，在官方文档里面翻起来挺费劲的，还是在别的博客里找到的；electron后端的debugger就是得折腾vscode的调试配置 还有vite插件，就这一整套整完比业务逻辑开发的时间都多了。
+前端调试工具的打开方式藏在文档深处，最后还是靠博客文章才找到；主进程调试则要配置 VSCode 和 Vite 插件，整套流程配下来，比写业务逻辑还耗时。
 
-## 第四难：electron-forge 进行打包
+## 第四难：electron-forge 打包初体验
 
-最开始使用的是官方文档里面的 `electron-forge` 进行的打包，这个东西是官方推荐的但是啊并不好用，使用下来有以下的问题
+一开始使用的是官方推荐的 `electron-forge`，但体验并不理想：
 
-1. 直接生成一个exe,然后直接安装没有安装引导，也没有卸载引导。
-2. 双击一下程序页面直接出来了，并且还有一个只有色块没有文字说明的update进程也会跑。
-3. 你配置它按照引导进程走不生效，反正我是没弄成功。
-4. 运行后的内存占用非常大直接干到600MB ，基本可以确定是把node_modules干进去了。
-5. 中文名称的文件在中间文件中是对的，安装后就成了乱码，试过几个解决方案没能成功的解决。
-6. 还有 `asar`被占用，强制杀掉所有的Electron才成功打包。
+1. 直接生成 exe，没有安装引导，也没有卸载入口；
+2. 双击直接运行，还会附带一个无说明的更新进程；
+3. 配置引导进程不生效；
+4. 内存占用高达 600MB，明显是把 node_modules 全打包了；
+5. 中文文件名在安装后变成乱码；
+6. 打包时 asar 文件被占用，必须杀掉所有 Electron 进程才能继续。
 
 **小结**
 
-用它的体验不怎么好，当然也可能是我没用对。
+或许是我没配置对，但整体使用体验确实不佳。
 
-## 第五难：electron-builder 进行打包下载文件卡住
+## 第五难：electron-builder 打包卡在下载
 
-`electron-forge` 用着不爽得换一个，后来我看 `CherryStudio`用的 `electron-builder` 就简单了解了一下，最终虽然成功打包但是整个过程也是颇为坎坷。
-
-使用它打包结果被以下三个压缩包卡住
+于是换用 `electron-builder`，结果打包时卡在三个依赖包的下载：
 
 - winCodeSign-2.6.0
 - nsis-3.0.4.1
 - nsis-resources-3.4.1
 
-得，又得查，查了半天又是网络的问题，后面两个解决办法
+又是网络问题。有两种解决办法：
 
-1. 手动下载解压
-2. 配置镜像
+**手动下载并放置缓存**
 
-**手动解压放缓存**
-
-手动下载三个安装包分别按照以下路径放
+将下载的包解压到以下路径：
 
 ```
 C:\Users\15034\AppData\Local\electron-builder\Cache\winCodeSign\winCodeSign-2.6.0
@@ -169,81 +144,55 @@ C:\Users\15034\AppData\Local\electron-builder\Cache\nsis\nsis-resources-3.4.1\pl
 
 **配置镜像**
 
-在 `.npmrc`文件里面写入
+在 `.npmrc` 中加入：
 
 ```
 electron_builder_binaries_mirror=https://npmmirror.com/mirrors/electron-builder-binaries/
 ```
 
-## 第六难：electron-builder 打包不成功
+## 第六难：打包流程未完成
 
-打包成功后的生成文件release没有成功生成，打包流程没有跑完。这个又是一点点的梳理结果是主程序入口不怎么对主程序的入口最开始是 `./dist/main/main.js`
+打包过程没有报错，但 release 文件夹没有生成，流程未完整执行。
 
-而是插件控制的 ./dist-electron/main.js。
+排查后发现，主进程入口不是 `./dist/main/main.js`，而是由 Vite 插件控制的 `./dist-electron/main.js`。
 
 **小结**
 
-这一步就是入口和插件默认行文的梳理，也挺耽搁时间的，距离成功一步之遥却在这里折磨人。
+入口路径的理解偏差，让成功只差一步，却耗费不少时间。
 
-## 第七难：打包时出现文件占用
+## 第七难：打包时文件被占用
 
-开开心心的打包结果又遇到了这个文件占用的报错，就挺恶心。
+又遇到文件占用错误：
 
 ```
 EBUSY: resource busy or locked, unlink '.../dist/win-unpacked/resources/app.asar'
 ```
 
-这个查了之后发现是 `vite build` 和 `electron-builder` 同时操作 `dist/`，然后把文件给锁上了。
+原因是 `vite build` 和 `electron-builder` 同时操作 `dist/` 目录，导致文件被锁定。
 
-为了处理这个问题，就让它们别用同一个文件夹就行自己玩自己的.
+解决方案是让它们使用不同的输出目录。修改 Vite 配置：
 
-将vite  的build 的 输出文件夹改了
-
-`outDir:fileURLToPath(newURL('./renderer-dist', import.meta.url)),`
-
-然后还有配置文件 `electron-builder.config.js` 里面的 `files`也需要改一下 `'renderer-dist/**/*',`
-
-但是在执行打包后并没有生成 `release`输出文件夹
-
-日志里面显示输出在 `dist\electron-deploykit Setup 0.0.1.exe ` 这就很诡异，感觉配置文件完全没有生效。
-查看打包后的 `dist\builder-effective-config.yaml` 文件里面确实没有生效。
-排除了
-
-- 文件名不对
-- 在自定义脚本中调用 builder.build()
-- package.json 中有 build 字段
-
-然后再 `electron-builder.config.js`中加入日志
-
-```
-console.log('electron-builder.config.js 被加载了！'); 
+```js
+outDir: fileURLToPath(new URL('./renderer-dist', import.meta.url))
 ```
 
-但是再打包后日志没有被打印，说明完全没有被加载。
+同时调整 `electron-builder.config.js` 中的 `files` 配置：
 
-然后将配置文件类型改为 `electron-builder.config.cjs` 也不行。
-
-使用以下的测试命令打印的内容完全没有问题。
-
-```
-node -e "console.log(require('./electron-builder.config.js'))"
+```js
+files: ['renderer-dist/**/*', ...]
 ```
 
-查看文件的权限也是完全没有问题，各种权限都有。
+但打包后仍然没有生成 release 文件夹，日志显示输出在 `dist\electron-deploykit Setup 0.0.1.exe`，似乎配置文件未生效。
 
-甚至在命令里面强行指定配置文件都不行 `electron-builder --config electron-builder.config.js`
+检查 `dist\builder-effective-config.yaml`，确认配置未加载。尝试修改配置文件名、加入日志打印、甚至回退版本，均无效。
 
-怀疑是 `electron-builder`版本问题将版本回退到25，结果一模一样的不行。
-
-就很恶心，不知道为啥我的环境上就是识别不到配置，然后突发奇想将配置文件改为yml，结果奇迹般的好了。
+最后将配置文件改为 `electron-builder.config.yml`，居然成功了。
 
 ## 第八难：包体积过大
 
-一个简单的页面安装后占用了700MB。
+一个简单页面打包后居然占用了 700MB。
 
-这个体积很不合理，最后的解决方案是将electron-builder配置的 `asar` 设置为 `false` 安装后能够看到打包进去的文件夹，里面有万恶之源 `node_modules`
-
-然后在配置里面将它踢出去
+将 `asar` 设为 `false` 后，发现果然是 `node_modules` 被全部打包。于是在配置中将其排除：
 
 ```yaml
 files:
@@ -254,28 +203,28 @@ files:
   - '!node_modules/**/*'
 ```
 
-## 第九难：ESM模块和CommonJS模块
+## 第九难：ESM 与 CommonJS 模块冲突
 
-打包后对安装包进行了安装但是程序直接运行不起来，然后就是加一堆日志，最后在日志里面发现是模块引用出问题，但是此时的日志是压缩混淆后的完全不知道是哪个模块出问题，所以在 `electron-builder.yml`和 `vite.config.js`配置其不混淆压缩。
+打包安装后程序无法启动，日志显示模块引用错误。由于代码被压缩，难以定位问题。
 
-在不混淆压缩后发现是 `const windowManager = require('/windowManager')` CommonJS风格的引入vite没引进去。
+取消压缩后，发现是 `const windowManager = require('/windowManager')` 这种 CommonJS 写法在 Vite 中不被支持。
 
-Electron官方的例子是用的CommonJS方式引入，但是vite是用的EMS所以只能是将之前的CommonJS模块全改成EMS模块。幸运的是我的版本比较高ESM模块没问题。
+Electron 官方示例使用 CommonJS，但 Vite 默认使用 ESM。最终将所有模块改为 ESM 写法。
 
-当然 后来也查到可以用 `vite-plugin-commonjs`插件来处理CommonJS模块转换，但是我没有用过，不确定能不能行。
+也可尝试使用 `vite-plugin-commonjs` 插件转换，但我没有实际验证。
 
-## 第十难：preload.js 没被打包到  `dist-electron`
+## 第十难：preload.js 未被打包
 
-一通改完后，开发环境运行都会出现
+开发环境运行时出现错误：
 
 ```
 Unable to load preload script: D:\code\DeployKit\electron-DeployKit\preload.js
 Error: ENOENT: no such file or directory, open 'D:\code\DeployKit\electron-DeployKit\preload.js'
 ```
 
-预处理文件找不到 `dist-electron` 下面确实没有 `preload.js`
+检查发现 `dist-electron` 下没有 `preload.js`。
 
-所以在 `vite.config.js` 加一个自定义组件
+于是在 Vite 配置中加入自定义插件，手动复制 preload 文件：
 
 ```js
 function copyPreloadPlugin() {
@@ -294,19 +243,31 @@ function copyPreloadPlugin() {
 }
 ```
 
-然后在plugins 中运行
+在 plugins 中启用：
 
 ```js
 plugins: [
-        ...
-        copyPreloadPlugin()
-    ],
+    // ...
+    copyPreloadPlugin()
+]
 ```
 
 **备注**
 
-> Electron 的主进程可以用 ESM，但 preload.js 必须用 CommonJS（require），并且必须确保它被正确复制到构建输出目录。
+> Electron 主进程可以使用 ESM，但 preload.js 必须使用 CommonJS（require），并且必须确保它被正确复制到输出目录。
+
+## 其他
+
+### powershell 不能执行npm 命令
+
+> 由于powershell 执行策略限制不能执行npm命令
+
+解决方案：修改策略
+
+* 在打开的窗口中，你可以先输入 `Get-ExecutionPolicy` 查看当前策略，通常会是 `Restricted`（禁止所有脚本）。
+* 然后输入核心命令：`Set-ExecutionPolicy RemoteSigned -Scope CurrentUser`。
+* 完成后，可以再次输入 `Get-ExecutionPolicy` 检查是否已变为 `RemoteSigned`，此时就可以执行命令了。
 
 ## 总结
 
-Electron 在开发环境下逻辑还算比较好理解也挺好写；但是打包、还有各种附加的工具、各种配置就很恶心了，相当于完全手动拼接了一套工具链。
+Electron 在开发环境下逻辑清晰，编写方便；但打包、工具链配置等方面却相当繁琐，相当于手动组装一套完整的构建流程。

@@ -1,6 +1,6 @@
 # electron-builder.yml
-appId: com.songyanglin.electron-deploykit
-productName: DeployKit
+appId: com.songyanglin.deploykit
+productName: deployKit
 copyright: Copyright © 2025 songyanglin
 
 directories:
@@ -8,17 +8,17 @@ directories:
   # app: release-unpacked
 
 files:
-  - ./renderer-dist/**/*
+  - ./dist-renderer/**/*
   - ./dist-electron/**/*
   - ./package.json
   - '!./**/*.map'
   - '!node_modules/**/*'
 
 extraResources:
-  - from: template/
-    to: template/
-  - from: config/
-    to: config/
+  - from: resources/templates/
+    to: resources/templates/
+  - from: resources/configs/
+    to: resources/configs/
 
 asar: false
 # 确保不压缩代码
@@ -28,7 +28,7 @@ asarUnpack: ['**/*']
 
 win:
   target: nsis
-  # icon: assets/icon.ico
+  icon: assets/icon.ico
 
 nsis:
   oneClick: false
@@ -37,9 +37,9 @@ nsis:
   createStartMenuShortcut: true
   language: '2052'
   deleteAppDataOnUninstall: true
-  # installerIcon: assets/icon.ico
-  # uninstallerIcon: assets/icon.ico
-  # installerHeaderIcon: assets/icon.ico
+  installerIcon: assets/icon.ico
+  uninstallerIcon: assets/icon.ico
+  installerHeaderIcon: assets/icon.ico
 
 mac:
   target: dmg

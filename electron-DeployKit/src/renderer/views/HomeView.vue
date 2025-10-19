@@ -5,11 +5,14 @@
                 <n-button>{{ projectName || '弹出选择' }}</n-button>
             </n-popselect>
 
-
-
-
             <n-button :loading="loading" @click="refresProject()">
                 刷新
+            </n-button>
+            <n-button :loading="loading" @click="refresProject()">
+                编辑配置
+            </n-button>
+            <n-button :loading="loading" @click="refresProject()">
+                新增配置
             </n-button>
         </n-flex>
         <n-flex align="center">
@@ -26,9 +29,9 @@
             </n-button>
         </n-flex>
         <n-collapse>
-            <n-collapse-item title="项目配置" name="1">
-                <ConfigView :config-data="projectConfig"></ConfigView>
-            </n-collapse-item>
+            <!-- <n-collapse-item title="详细配置" name="1"> -->
+            <ConfigView :config-data="projectConfig"></ConfigView>
+            <!-- </n-collapse-item> -->
         </n-collapse>
 
     </n-flex>
@@ -37,6 +40,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useMessage } from 'naive-ui'
+
+import { API } from '@/api/electronAPI'
 import ConfigView from '@components/ConfigView.vue'
 import { ConfigData } from '@/types/config'
 const message = useMessage()
@@ -45,10 +50,8 @@ const projectName = ref('选择项目');
 const projectConfig = ref<ConfigData>({
     desc: {},
     envs: [],
-    backupAndUpdate: {
-        backup: {},
-        update: {}
-    }
+    backup: {},
+    update: {}
 });
 let options: any[] = [];
 const init = async () => {
@@ -61,7 +64,7 @@ const initOptions = async () => {
     try {
         // 清空选项
         options.length = 0;
-        const response = await window.electronAPI.getConfigFiles();
+        const response = await API.getConfigFiles();
         options.push(...response.map((item: any) => ({ label: item, value: item })));
 
     } catch {
@@ -86,7 +89,7 @@ const refreshProjectConfig = async (value: string) => {
     console.log("选择的项目：", value)
     //  获取配置项
     try {
-        const config = await window.electronAPI.getProjectConfig(value);
+        const config = await API.getProjectConfig(value);
         projectConfig.value = config;
     } catch (error) {
 
@@ -97,27 +100,17 @@ const updatePackagePath = ref('');
 
 const selectUpdatePackagePath = async () => {
     try {
-        const result = await window.electronAPI.getSelectFolderPath({
+        const result = await API.getSelectFolderPath({
             title: '选择开发环境更新包根路径',
             defaultPath: updatePackagePath.value
         });
-        if (result.success) {
-            updatePackagePath.value = result.path;
-            unTargetSetDefault(updatePackagePath.value);
-        } else if (result.state == "error") {
-            message.warning(result.message);
-        }
+        updatePackagePath.value = result;
+        targetPackagePath.value = getParentPath(updatePackagePath.value);
     } catch (error) {
-        message.error('选择文件夹失败:' + error);
-        console.error('选择文件夹失败:', error);
+
     }
 };
-const unTargetSetDefault = (updatePath: string) => {
-    if (!targetPackagePath.value) {
-        //如果目标路径为空，则默认设置为更新包路径的上一级
-        targetPackagePath.value = getParentPath(updatePath);
-    }
-}
+
 const getParentPath = (path: string) => {
     if (!path) return ''
     // 处理Windows路径分隔符
@@ -129,18 +122,15 @@ const targetPackagePath = ref('');
 
 const selectTargetPackagePath = async () => {
     try {
-        const result = await window.electronAPI.getSelectFolderPath({
+        const result = await API.getSelectFolderPath({
             title: '选择更新包保存路径',
             defaultPath: targetPackagePath.value
         });
         if (result.success) {
-            targetPackagePath.value = result.path;
-        } else if (result.state == "error") {
-            message.warning(result.message);
+            targetPackagePath.value = result;
         }
     } catch (error) {
-        message.error('选择文件夹失败:' + error);
-        console.error('选择文件夹失败:', error);
+
     }
 };
 
@@ -172,12 +162,12 @@ const generatePackage = async () => {
         }
         // 转换为普通对象确保可序列化
         const plainConfig = JSON.parse(JSON.stringify(projectConfig.value))
-        const result = await window.electronAPI.generatePackage(
+        const result = await API.generatePackage(
             updatePackagePath.value,
             targetPackagePath.value,
             projectName.value,
             plainConfig,
-            "web"
+
         );
         if (result.success) {
             message.success(result.message);

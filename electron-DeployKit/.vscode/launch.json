@@ -6,17 +6,31 @@
             "type": "node",
             "request": "launch",
             "runtimeExecutable": "npm",
-            "runtimeArgs": ["run", "dev"],
+            "runtimeArgs": [
+                "run",
+                "dev"
+            ],
             "windows": {
                 "runtimeExecutable": "npm.cmd"
             },
             "console": "integratedTerminal",
             "internalConsoleOptions": "neverOpen",
-            "outFiles": ["${workspaceFolder}/dist/**/*.js"],
-            "skipFiles": ["<node_internals>/**"],
+            "outFiles": [
+                "${workspaceFolder}/dist-electron/**/*.js"
+            ],
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
             "env": {
                 "NODE_ENV": "development",
                 "ELECTRON_IS_DEV": "true"
+            },
+            "sourceMaps": true,
+            "sourceMapPathOverrides": {
+                "../*": "${workspaceFolder}/*",
+                "../../*": "${workspaceFolder}/*",
+                "../../../*": "${workspaceFolder}/*",
+                "src/electron/*": "${workspaceFolder}/src/electron/*"
             }
         },
         {
@@ -38,7 +52,10 @@
     "compounds": [
         {
             "name": "Debug Main + Renderer",
-            "configurations": ["Debug Electron with Vite", "Attach to Renderer"]
+            "configurations": [
+                "Debug Electron with Vite",
+                "Attach to Renderer"
+            ]
         }
     ]
 }

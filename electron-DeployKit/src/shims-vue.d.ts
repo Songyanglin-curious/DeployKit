@@ -4,3 +4,8 @@ declare module '*.vue' {
     const component: DefineComponent<{}, {}, any>
     export default component
 }
+
+// Extend Window interface with electronAPI
+interface Window {
+    electronAPI: any;
+}

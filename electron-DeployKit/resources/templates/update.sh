@@ -1,0 +1,111 @@
+#!/bin/bash
+
+# 颜色定义
+YELLOW='\033[0;33m'
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+# 更新脚本
+# 用法: ./update.sh
+
+LOG_FILE="update.log"
+echo "=== 更新任务开始 ===" > "$LOG_FILE"
+echo "[$(date +'%Y-%m-%d %H:%M:%S')] 更新脚本启动" >> "$LOG_FILE"
+echo "[$(date +'%Y-%m-%d %H:%M:%S')] 执行用户: $(whoami)" >> "$LOG_FILE"
+
+# 检查备份日志是否存在或为空
+if [ ! -f "backup.log" ] || [ ! -s "backup.log" ]; then
+    echo -e "${RED}错误: 没有找到备份日志或备份日志为空${NC}"
+    echo -e "${YELLOW}请先执行备份脚本: bash backup.sh${NC}"
+    echo "[$(date +'%Y-%m-%d %H:%M:%S')] 错误: 没有找到备份日志或备份日志为空" >> "$LOG_FILE"
+    echo "[$(date +'%Y-%m-%d %H:%M:%S')] 更新任务终止" >> "$LOG_FILE"
+    exit 1
+fi
+
+PACKAGE_NAME="{PACKAGE_NAME}"
+UPDATE_PATH="{UPDATE_PATH}"
+UPDATE_NAME="{UPDATE_NAME}"
+
+# 控制台输出
+echo -e "${YELLOW}=== 开始更新 ===${NC}"
+echo -e "${YELLOW}项目: $UPDATE_NAME${NC}"
+echo -e "${YELLOW}更新目录: $UPDATE_PATH${NC}"
+echo ""
+
+echo "[$(date +'%Y-%m-%d %H:%M:%S')] 项目名称: $UPDATE_NAME" >> "$LOG_FILE"
+echo "[$(date +'%Y-%m-%d %H:%M:%S')] 更新目录: $UPDATE_PATH" >> "$LOG_FILE"
+
+# 文件比较和更新逻辑
+echo -e "${YELLOW}正在比较文件差异...${NC}"
+echo "[$(date +'%Y-%m-%d %H:%M:%S')] 开始比较文件差异..." >> "$LOG_FILE"
+
+# 初始化统计变量
+TOTAL_FILES=0
+UPDATED_FILES=0
+ADDED_FILES=0
+UNCHANGED_FILES=0
+
+# 处理更新包中的每个文件
+while IFS= read -r -d '' file; do
+    ((TOTAL_FILES++))
+    # 获取相对路径并处理特殊字符
+    rel_path=$(realpath --relative-to="$PACKAGE_NAME" "$file")
+    target_file="$UPDATE_PATH/$rel_path"
+    
+    # 检查目标路径是否存在该文件
+    if [ -f "$target_file" ]; then
+        # 比较文件大小和内容
+        if [ ! -f "$target_file" ] || 
+           [ $(stat -c%s "$file") -ne $(stat -c%s "$target_file") ] || 
+           ! cmp -s "$file" "$target_file" 
+        then
+            # 创建目标目录并保留权限
+            mkdir -p "$(dirname "$target_file")"
+            # 更新文件并保留权限、时间戳等属性
+            if cp -p "$file" "$target_file"; then
+                echo -e "${GREEN}更新文件: $rel_path${NC}"
+                echo "[$(date +'%Y-%m-%d %H:%M:%S')] 更新文件: $rel_path (内容有变化)" >> "$LOG_FILE"
+                ((UPDATED_FILES++))
+            else
+                echo -e "${RED}错误: 更新文件失败: $rel_path${NC}"
+                echo "[$(date +'%Y-%m-%d %H:%M:%S')] 错误: 更新文件失败: $rel_path" >> "$LOG_FILE"
+            fi
+        else
+            echo -e "${YELLOW}跳过文件: $rel_path (无变化)${NC}"
+            echo "[$(date +'%Y-%m-%d %H:%M:%S')] 跳过文件: $rel_path (内容无变化)" >> "$LOG_FILE"
+            ((UNCHANGED_FILES++))
+        fi
+    else
+        # 创建新文件并保留权限
+        mkdir -p "$(dirname "$target_file")"
+        if cp -p "$file" "$target_file"; then
+            echo -e "${GREEN}添加文件: $rel_path${NC}"
+            echo "[$(date +'%Y-%m-%d %H:%M:%S')] 添加文件: $rel_path (新文件)" >> "$LOG_FILE"
+            ((ADDED_FILES++))
+        else
+            echo -e "${RED}错误: 添加文件失败: $rel_path${NC}"
+            echo "[$(date +'%Y-%m-%d %H:%M:%S')] 错误: 添加文件失败: $rel_path" >> "$LOG_FILE"
+        fi
+    fi
+done < <(find "$PACKAGE_NAME" -type f -print0)
+
+# 添加统计信息
+echo "[$(date +'%Y-%m-%d %H:%M:%S')] === 更新统计 ===" >> "$LOG_FILE"
+echo "[$(date +'%Y-%m-%d %H:%M:%S')] 总文件数: $TOTAL_FILES" >> "$LOG_FILE"
+echo "[$(date +'%Y-%m-%d %H:%M:%S')] 更新文件数: $UPDATED_FILES" >> "$LOG_FILE"
+echo "[$(date +'%Y-%m-%d %H:%M:%S')] 添加文件数: $ADDED_FILES" >> "$LOG_FILE"
+echo "[$(date +'%Y-%m-%d %H:%M:%S')] 未更改文件数: $UNCHANGED_FILES" >> "$LOG_FILE"
+
+# 控制台输出统计信息
+echo ""
+echo -e "${YELLOW}=== 更新统计 ===${NC}"
+echo -e "${YELLOW}总文件数: $TOTAL_FILES${NC}"
+echo -e "${GREEN}更新文件数: $UPDATED_FILES${NC}"
+echo -e "${GREEN}添加文件数: $ADDED_FILES${NC}"
+echo -e "${YELLOW}未更改文件数: $UNCHANGED_FILES${NC}"
+echo ""
+echo -e "${GREEN}更新任务完成${NC}"
+
+echo "[$(date +'%Y-%m-%d %H:%M:%S')] 更新任务完成" >> "$LOG_FILE"
+echo "[$(date +'%Y-%m-%d %H:%M:%S')] === 更新任务结束 ===" >> "$LOG_FILE"

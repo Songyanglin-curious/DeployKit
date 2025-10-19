@@ -12,7 +12,7 @@ function copyPreloadPlugin() {
     return {
         name: 'copy-preload',
         closeBundle() {
-            const src = fileURLToPath(new URL('./src/main/preload.js', import.meta.url))
+            const src = fileURLToPath(new URL('./src/electron/preload.js', import.meta.url))
             const destDir = fileURLToPath(new URL('./dist-electron', import.meta.url))
             const dest = join(destDir, 'preload.js')
 
@@ -35,8 +35,9 @@ export default defineConfig({
                 }
             }
         }),
+
         electron({
-            entry: fileURLToPath(new URL('./src/main/main.js', import.meta.url)),
+            entry: fileURLToPath(new URL('./src/electron/index.js', import.meta.url)),
             onstart(args) {
                 args.startup(['.', '--remote-debugging-port=9223'])
             },
@@ -46,7 +47,7 @@ export default defineConfig({
                     rollupOptions: {
                         external: ['electron'],
                     },
-                    assetsInclude: ['src/main/**/*'],
+                    assetsInclude: ['src/electron/**/*'],
                     terserOptions: {
                         compress: false,
                         mangle: false,
@@ -59,15 +60,15 @@ export default defineConfig({
                 }
             }
         }),
-        AutoImport({
-            resolvers: [ElementPlusResolver()],
-            dts: 'src/auto-imports.d.ts'
-        }),
-        Components({
-            resolvers: [ElementPlusResolver({ importStyle: 'sass' })],
-            dts: 'src/components.d.ts'
-        }),
-        copyPreloadPlugin()
+        // AutoImport({
+        //     resolvers: [ElementPlusResolver()],
+        //     dts: 'src/auto-imports.d.ts'
+        // }),
+        // Components({
+        //     resolvers: [ElementPlusResolver({ importStyle: 'sass' })],
+        //     dts: 'src/components.d.ts'
+        // }),
+        copyPreloadPlugin(),
     ],
     /**
      * base: './' 表示：打包后的所有资源（JS、CSS、图片等）都使用「相对于当前 HTML 文件所在目录」的路径来引用。
@@ -102,7 +103,7 @@ export default defineConfig({
     },
     build: {
         // 输出路径
-        outDir: fileURLToPath(new URL('./renderer-dist', import.meta.url)),
+        outDir: fileURLToPath(new URL('./dist-renderer', import.meta.url)),
         // 关闭清空输出目录警告的
         emptyOutDir: true,
         sourcemap: true,
