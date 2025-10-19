@@ -200,3 +200,4 @@ vite.config.ts.timestamp-*
 **/.cache/
 **/dist-electron/
 **/renderer-dist/
+**/dist-renderer/
