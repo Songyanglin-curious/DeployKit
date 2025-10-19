@@ -6,7 +6,7 @@
  */
 import { ipcMain } from 'electron'
 import { createAsyncWrapper } from './asyncWrapper.js'
-import { getSelectFolderPath, getConfigFiles, getConfigContentByName, generatePackage } from '../services/index.js'
+import { getSelectFolderPath, getConfigFiles, getConfigContentByName, saveConfigContent,deleteConfigByName, generatePackage } from '../services/index.js'
 
 // 初始化异步包装器 - 为所有IPC路由提供统一的执行监控
 const asyncWrapper = createAsyncWrapper()
@@ -31,9 +31,9 @@ const routeTable = {
 
     // 配置管理路由
     'get-config-files': () => getConfigFiles(),
-    'get-project-config': (event, projectName) =>
-        getConfigContentByName(projectName),
-
+    'get-project-config': (event, projectName) => getConfigContentByName(projectName),
+    'save-project-config': (event, configFileName, config) => saveConfigContent(configFileName, config),
+    'delete-project-config': (event, configFileName) => deleteConfigByName(configFileName),
     // 文件系统操作路由
     'get-select-folder-path': (event, options) =>
         getSelectFolderPath(options),

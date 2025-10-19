@@ -2,12 +2,16 @@
 
 
     <n-message-provider>
-        <HomeView />
+        <n-modal-provider>
+            <n-dialog-provider>
+                <HomeView />
+            </n-dialog-provider>
+        </n-modal-provider>
     </n-message-provider>
 </template>
 
 <script setup lang="ts">
-import { NMessageProvider } from 'naive-ui'
+import { NMessageProvider, NModalProvider, NDialogProvider } from 'naive-ui'
 import HomeView from '@/views/HomeView.vue'
 </script>
 

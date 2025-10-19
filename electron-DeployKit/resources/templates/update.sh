@@ -26,6 +26,7 @@ fi
 PACKAGE_NAME="{PACKAGE_NAME}"
 UPDATE_PATH="{UPDATE_PATH}"
 UPDATE_NAME="{UPDATE_NAME}"
+HAVE_BIN="{HAVE_BIN}"
 
 # 控制台输出
 echo -e "${YELLOW}=== 开始更新 ===${NC}"
@@ -35,6 +36,7 @@ echo ""
 
 echo "[$(date +'%Y-%m-%d %H:%M:%S')] 项目名称: $UPDATE_NAME" >> "$LOG_FILE"
 echo "[$(date +'%Y-%m-%d %H:%M:%S')] 更新目录: $UPDATE_PATH" >> "$LOG_FILE"
+echo "[$(date +'%Y-%m-%d %H:%M:%S')] 是否有Bin目录: $HAVE_BIN" >> "$LOG_FILE"
 
 # 文件比较和更新逻辑
 echo -e "${YELLOW}正在比较文件差异...${NC}"
@@ -67,6 +69,19 @@ while IFS= read -r -d '' file; do
                 echo -e "${GREEN}更新文件: $rel_path${NC}"
                 echo "[$(date +'%Y-%m-%d %H:%M:%S')] 更新文件: $rel_path (内容有变化)" >> "$LOG_FILE"
                 ((UPDATED_FILES++))
+
+                # 如果文件在bin目录下且haveBin为true，则额外复制到Bin目录
+                if [[ "$rel_path" == bin/* && "$HAVE_BIN" == "true" ]]; then
+                    bin_target_file="${target_file//bin/Bin}"
+                    mkdir -p "$(dirname "$bin_target_file")"
+                    if cp -p "$file" "$bin_target_file"; then
+                        echo -e "${GREEN}复制到Bin目录: ${rel_path//bin/Bin}${NC}"
+                        echo "[$(date +'%Y-%m-%d %H:%M:%S')] 复制到Bin目录: ${rel_path//bin/Bin}" >> "$LOG_FILE"
+                    else
+                        echo -e "${RED}错误: 复制到Bin目录失败: ${rel_path//bin/Bin}${NC}"
+                        echo "[$(date +'%Y-%m-%d %H:%M:%S')] 错误: 复制到Bin目录失败: ${rel_path//bin/Bin}" >> "$LOG_FILE"
+                    fi
+                fi
             else
                 echo -e "${RED}错误: 更新文件失败: $rel_path${NC}"
                 echo "[$(date +'%Y-%m-%d %H:%M:%S')] 错误: 更新文件失败: $rel_path" >> "$LOG_FILE"
@@ -76,17 +91,30 @@ while IFS= read -r -d '' file; do
             echo "[$(date +'%Y-%m-%d %H:%M:%S')] 跳过文件: $rel_path (内容无变化)" >> "$LOG_FILE"
             ((UNCHANGED_FILES++))
         fi
-    else
-        # 创建新文件并保留权限
-        mkdir -p "$(dirname "$target_file")"
-        if cp -p "$file" "$target_file"; then
-            echo -e "${GREEN}添加文件: $rel_path${NC}"
-            echo "[$(date +'%Y-%m-%d %H:%M:%S')] 添加文件: $rel_path (新文件)" >> "$LOG_FILE"
-            ((ADDED_FILES++))
         else
-            echo -e "${RED}错误: 添加文件失败: $rel_path${NC}"
-            echo "[$(date +'%Y-%m-%d %H:%M:%S')] 错误: 添加文件失败: $rel_path" >> "$LOG_FILE"
-        fi
+            # 创建新文件并保留权限
+            mkdir -p "$(dirname "$target_file")"
+            if cp -p "$file" "$target_file"; then
+                echo -e "${GREEN}添加文件: $rel_path${NC}"
+                echo "[$(date +'%Y-%m-%d %H:%M:%S')] 添加文件: $rel_path (新文件)" >> "$LOG_FILE"
+                ((ADDED_FILES++))
+
+                # 如果文件在bin目录下且haveBin为true，则额外复制到Bin目录
+                if [[ "$rel_path" == bin/* && "$HAVE_BIN" == "true" ]]; then
+                    bin_target_file="${target_file//bin/Bin}"
+                    mkdir -p "$(dirname "$bin_target_file")"
+                    if cp -p "$file" "$bin_target_file"; then
+                        echo -e "${GREEN}复制到Bin目录: ${rel_path//bin/Bin}${NC}"
+                        echo "[$(date +'%Y-%m-%d %H:%M:%S')] 复制到Bin目录: ${rel_path//bin/Bin}" >> "$LOG_FILE"
+                    else
+                        echo -e "${RED}错误: 复制到Bin目录失败: ${rel_path//bin/Bin}${NC}"
+                        echo "[$(date +'%Y-%m-%d %H:%M:%S')] 错误: 复制到Bin目录失败: ${rel_path//bin/Bin}" >> "$LOG_FILE"
+                    fi
+                fi
+            else
+                echo -e "${RED}错误: 添加文件失败: $rel_path${NC}"
+                echo "[$(date +'%Y-%m-%d %H:%M:%S')] 错误: 添加文件失败: $rel_path" >> "$LOG_FILE"
+            fi
     fi
 done < <(find "$PACKAGE_NAME" -type f -print0)
 

@@ -41,3 +41,25 @@ export async function getConfigContentByName(configFileName) {
     }
 }
 
+export async function saveConfigContent(configFileName, content) {
+    try {
+        const configFile = join(PATHS.CONFIGS, `${configFileName}.json`)
+        const contentStr = JSON.stringify(content, null, 2)
+        fs.writeFileSync(configFile, contentStr, 'utf8')
+        return true
+    } catch (error) {
+        log.error(`保存配置文件（${configFileName}）内容失败:`, error)
+        throw new Error(`保存配置文件（${configFileName}）内容失败`);
+    }
+}
+export async function deleteConfigByName(configFileName) {
+    try {
+        const configFile = join(PATHS.CONFIGS, `${configFileName}.json`)
+        fs.removeSync(configFile)
+        return true
+    } catch (error) {
+        log.error(`删除配置文件（${configFileName}）失败:`, error)
+        throw new Error(`删除配置文件（${configFileName}）失败`);
+    }
+}
+

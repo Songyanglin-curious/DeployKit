@@ -1,19 +1,28 @@
 <template>
     <n-flex vertical>
-        <n-flex align="center">
-            <n-popselect v-model:value="projectName" :options="options" trigger="click" scrollable @update:value="refreshProjectConfig">
-                <n-button>{{ projectName || '弹出选择' }}</n-button>
-            </n-popselect>
+        <n-flex align="center" justify="space-between">
+            <n-flex align="center">
+                <n-popselect v-model:value="projectName" :options="options" trigger="click" scrollable @update:value="refreshProjectConfig">
+                    <n-button>{{ projectName || '弹出选择' }}</n-button>
+                </n-popselect>
 
-            <n-button :loading="loading" @click="refresProject()">
-                刷新
-            </n-button>
-            <n-button :loading="loading" @click="refresProject()">
-                编辑配置
-            </n-button>
-            <n-button :loading="loading" @click="refresProject()">
-                新增配置
-            </n-button>
+                <n-button :loading="loading" @click="refresProject()">
+                    刷新
+                </n-button>
+            </n-flex>
+
+            <n-flex align="center">
+                <n-button :loading="loading" @click="editProjectConfig()">
+                    编辑配置
+                </n-button>
+                <n-button :loading="loading" @click="insertProjectConfig()">
+                    新增配置
+                </n-button>
+                <n-button :loading="loading" @click="deleteProjectConfig()">
+                    删除配置
+                </n-button>
+            </n-flex>
+
         </n-flex>
         <n-flex align="center">
             <n-input v-model:value="updatePackagePath" @click="selectUpdatePackagePath" placeholder="选择开发环境更新包根路径" readonly style="width: 100%" />
@@ -38,21 +47,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useMessage } from 'naive-ui'
+import { h, ref } from 'vue'
+import { useDialog, useMessage, useModal } from 'naive-ui'
 
 import { API } from '@/api/electronAPI'
 import ConfigView from '@components/ConfigView.vue'
+import ConfigInsert from '@/components/ConfigInsert.vue'
+import ConfigEdit from '@/components/ConfigEdit.vue'
 import { ConfigData } from '@/types/config'
-const message = useMessage()
+import { getConfigTemplate } from '@/utils/config'
+const message = useMessage();
+const modal = useModal();
+const dialog = useDialog();
 const loading = ref(false);
 const projectName = ref('选择项目');
-const projectConfig = ref<ConfigData>({
-    desc: {},
-    envs: [],
-    backup: {},
-    update: {}
-});
+const projectConfig = ref<ConfigData>(getConfigTemplate());
 let options: any[] = [];
 const init = async () => {
 
@@ -169,11 +178,7 @@ const generatePackage = async () => {
             plainConfig,
 
         );
-        if (result.success) {
-            message.success(result.message);
-        } else {
-            message.warning(result.message);
-        }
+        message.success("打包文件生成成功！");
     } catch (error) {
         message.error('根据环境变量生成不同更新包更新文件失败:' + error);
         console.error('根据环境变量生成不同更新包更新文件失败:', error);
@@ -182,6 +187,83 @@ const generatePackage = async () => {
 
 init();
 
+const insertProjectConfig = () => {
+    const m = modal.create({
+        title: '新增配置',
+        preset: 'card',
+        style: {
+            width: '100vw',
+            height: '100vh',
+            overflow: 'auto',
+        },
+        content: () => h(
+            ConfigInsert,
+            {
+                onSuccess: () => {
+                    console.log('提交成功，关闭 modal')
+                    m.destroy() // 关闭 modal
+                    init();
+                },
+                onCancel: () => {
+                    console.log('取消操作，关闭 modal')
+                    m.destroy() // 关闭 modal
+                }
+
+            }
+        ),
+    })
+}
+const editProjectConfig = () => {
+    const m = modal.create({
+        title: `编辑配置[${projectName.value}]`,
+        preset: 'card',
+        style: {
+            width: '100vw',
+            height: '100vh',
+            overflow: 'auto',
+        },
+        content: () => h(
+            ConfigEdit,
+            {
+                projectName: projectName.value,
+                configData: projectConfig.value,
+                onSuccess: () => {
+                    console.log('提交成功，关闭 modal')
+                    m.destroy() // 关闭 modal
+                    init();
+                },
+                onCancel: () => {
+                    console.log('取消操作，关闭 modal')
+                    m.destroy() // 关闭 modal
+                }
+
+            }
+        ),
+    })
+}
+const deleteProjectConfig = () => {
+    dialog.warning({
+        title: `删除配置[${projectName.value}]`,
+        content: `
+        删除后，该项目的配置将无法恢复，请谨慎操作！`,
+        positiveText: '删除',
+        negativeText: '取消',
+        draggable: false,
+        onPositiveClick: async () => {
+            try {
+                await API.deleteProjectConfig(projectName.value);
+                message.success('删除成功');
+                init();
+            } catch (error) {
+                message.error('删除失败:' + error);
+            }
+        },
+        onNegativeClick: () => {
+
+        }
+    })
+
+}
 
 </script>
 

@@ -42,6 +42,8 @@ export async function generatePackage(sourcePath, targetPath, projectName, confi
             const targetFolderPath = join(envTargetPath, sourceFolderName)
             fs.copySync(sourcePath, targetFolderPath)
 
+            const haveBin = config?.Bin[env] || false;
+
             // 获取配置文件中的环境变量
             const updatePath = formatPath(config.backupAndUpdate.update[env]);
             const backupPath = formatPath(config.backupAndUpdate.backup[env]);
@@ -70,6 +72,11 @@ export async function generatePackage(sourcePath, targetPath, projectName, confi
                         if (entry.isDirectory()) {
                             walkDir(fullPath, relPath)
                         } else {
+                            // 如果relPath是以bin开头的 同时 haveBin 为true 则传入两份路径
+                            if (haveBin && relPath.startsWith('bin')) {
+                                const BinPath = relPath.replace('bin', 'Bin');
+                                filesToBackup.push(relPath);
+                            }
                             filesToBackup.push(relPath)
                         }
                     }
@@ -97,6 +104,8 @@ export async function generatePackage(sourcePath, targetPath, projectName, confi
                 content = content.replace(/{UPDATE_PATH}/g, updatePath)
                 content = content.replace(/{UPDATE_NAME}/g, updateName)
                 content = content.replace(/{PACKAGE_NAME}/g, sourceDirName)
+                // 添加HAVE_BIN变量
+                content = content.replace(/{HAVE_BIN}/g, haveBin ? 'true' : 'false')
 
                 fs.writeFileSync(updateTargetPath, content, { encoding: 'utf8' })
                 fs.chmodSync(updateTargetPath, 0o755)

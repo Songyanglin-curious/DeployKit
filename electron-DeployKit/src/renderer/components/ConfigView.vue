@@ -1,5 +1,5 @@
 <template>
-    <ConfigTemplate v-model="localConfigData" @validate="handleValidate" ref="configTemplateRef" :disabled="true" />
+    <ConfigTemplate v-model="localConfigData" ref="configTemplateRef" :disabled="true" />
 </template>
 
 <script setup lang="ts">
@@ -26,13 +26,7 @@ watch(
     { deep: true, immediate: true }
 );
 
-const handleValidate = (result: any) => {
-    console.log('验证结果:', result);
-}
 
-// 暴露方法给父组件
-defineExpose({
-    validateConfig: () => configTemplateRef.value?.validate(),
-    getConfigData: () => toRaw(localConfigData.value)
-})
+
+
 </script>

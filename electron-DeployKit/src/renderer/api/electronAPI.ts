@@ -1,4 +1,5 @@
 // src/utils/electronAPI.js
+import { ConfigData } from '@/types/config';
 import { createDiscreteApi } from 'naive-ui'
 const { message: messageer } = createDiscreteApi(['message'])
 class ElectronAPI {
@@ -65,7 +66,16 @@ class ElectronAPI {
     async generatePackage(sourcePath: any, targetPath: any, projectName: any, config: any) {
         const result = await this._invoke('generatePackage', sourcePath, targetPath, projectName, config)
         // 特殊处理：生成包成功时显示成功消息
-        this.showMessage('success', '打包文件生成成功！')
+
+        return result
+    }
+
+    async saveProjectConfig(configFileName: string, config: ConfigData) {
+        const result = await this._invoke('saveProjectConfig', configFileName, config);
+        return result
+    }
+    async deleteProjectConfig(configFileName: string) {
+        const result = await this._invoke('deleteProjectConfig', configFileName);
         return result
     }
 }

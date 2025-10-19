@@ -82,9 +82,11 @@ const emit = defineEmits(['validate'])
 
 // 处理环境数组更新
 const handleEnvsUpdate = (newEnvs) => {
+    //newEnvs去重
+    const newEnvsArr = Array.from(new Set(newEnvs))
     model.value = {
         ...model.value,
-        envs: newEnvs
+        envs: newEnvsArr
     }
     triggerValidation()
 }
