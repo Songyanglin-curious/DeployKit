@@ -3,6 +3,7 @@ import log from 'electron-log'
 import fs from 'fs-extra'
 import path from 'node:path'
 
+import { initializeApp, setupChineseMenu } from './appHooks.js'
 import WindowManager from './windowManager.js'
 import { setupIPCRoutes } from './ipc/ipcRouter.js'
 import { pathConfig, PATHS } from './config/path'
@@ -12,17 +13,7 @@ import { isDev } from './utils/environment'
 // 配置日志
 log.transports.file.level = 'info'
 log.transports.console.level = 'debug'
-function initializeApp() {
-    // 创建配置目录
-    if (!fs.existsSync(PATHS.CONFIGS)) {
-        // 将安装包下的配置文件夹复制到resources目录下
-        try {
-            fs.copySync(path.join(pathConfig.processResources, 'configs'), PATHS.CONFIGS)
-        } catch (err) {
-            log.error('初始化模板拷贝失败', err)
-        }
-    }
-}
+
 class ElectronApp {
     constructor() {
         this.mainWindow = null;
@@ -37,8 +28,9 @@ class ElectronApp {
         // 2. 等待应用准备就绪
         await app.whenReady(); // ✅ 只在这里等 ready
 
-        console.log("log path:", app.getPath("logs"));
+
         initializeApp();
+        setupChineseMenu();
         log.info('PATHS.CONFIGS:', PATHS.CONFIGS);
 
         log.info(`初始化app资源，processResources: ${pathConfig.processResources}, userData: ${pathConfig.userData}`)

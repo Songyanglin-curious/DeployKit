@@ -16,7 +16,7 @@ export async function getSelectFolderPath(options = {}) {
             ...options
         });
         if (result.canceled) {
-            throw new Error('用户取消了选择')
+            // throw new Error('用户取消了选择')
         }
         return result.filePaths[0];
     } catch (error) {

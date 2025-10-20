@@ -1,42 +1,47 @@
 <template>
     <n-flex vertical>
-        <n-flex align="center" justify="space-between">
-            <n-flex align="center">
-                <n-popselect v-model:value="projectName" :options="options" trigger="click" scrollable @update:value="refreshProjectConfig">
-                    <n-button>{{ projectName || '弹出选择' }}</n-button>
-                </n-popselect>
+        <n-card>
 
-                <n-button :loading="loading" @click="refresProject()">
-                    刷新
+
+            <n-flex align="center" justify="space-between" class="mb10">
+                <n-flex align="center">
+                    <n-popselect v-model:value="projectName" :options="options" trigger="click" scrollable @update:value="refreshProjectConfig">
+                        <n-button>{{ projectName || '弹出选择' }}</n-button>
+                    </n-popselect>
+
+                    <n-button :loading="loading" @click="refresProject()">
+                        刷新
+                    </n-button>
+                </n-flex>
+
+                <n-flex align="center">
+                    <n-button @click="editProjectConfig()">
+                        编辑配置
+                    </n-button>
+                    <n-button @click="insertProjectConfig()">
+                        新增配置
+                    </n-button>
+                    <n-button type="warning" @click="deleteProjectConfig()">
+                        删除配置
+                    </n-button>
+
+                </n-flex>
+
+            </n-flex>
+            <n-flex align="center" class="mb10">
+                <n-input v-model:value="updatePackagePath" @click="selectUpdatePackagePath" placeholder="选择开发环境更新包根路径" readonly style="width: 100%" />
+
+            </n-flex>
+            <n-flex align="center" class="mb10">
+                <n-input v-model:value="targetPackagePath" @click="selectTargetPackagePath" placeholder="选择更新包保存路径" readonly style="width: 100%" />
+
+            </n-flex>
+            <n-flex align="center">
+                <n-button type="primary" @click="generatePackage()" style="width: 100%;">
+                    生成更新包
                 </n-button>
             </n-flex>
-
-            <n-flex align="center">
-                <n-button :loading="loading" @click="editProjectConfig()">
-                    编辑配置
-                </n-button>
-                <n-button :loading="loading" @click="insertProjectConfig()">
-                    新增配置
-                </n-button>
-                <n-button :loading="loading" @click="deleteProjectConfig()">
-                    删除配置
-                </n-button>
-            </n-flex>
-
-        </n-flex>
-        <n-flex align="center">
-            <n-input v-model:value="updatePackagePath" @click="selectUpdatePackagePath" placeholder="选择开发环境更新包根路径" readonly style="width: 100%" />
-
-        </n-flex>
-        <n-flex align="center">
-            <n-input v-model:value="targetPackagePath" @click="selectTargetPackagePath" placeholder="选择更新包保存路径" readonly style="width: 100%" />
-
-        </n-flex>
-        <n-flex align="center">
-            <n-button :loading="loading" @click="generatePackage()">
-                生成更新包
-            </n-button>
-        </n-flex>
+        </n-card>
         <n-collapse>
             <!-- <n-collapse-item title="详细配置" name="1"> -->
             <ConfigView :config-data="projectConfig"></ConfigView>
@@ -267,4 +272,8 @@ const deleteProjectConfig = () => {
 
 </script>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+.mb10 {
+    margin-bottom: 10px;
+}
+</style>

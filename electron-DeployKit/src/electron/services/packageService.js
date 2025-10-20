@@ -45,8 +45,8 @@ export async function generatePackage(sourcePath, targetPath, projectName, confi
             const haveBin = config?.Bin[env] || false;
 
             // 获取配置文件中的环境变量
-            const updatePath = formatPath(config.backupAndUpdate.update[env]);
-            const backupPath = formatPath(config.backupAndUpdate.backup[env]);
+            const updatePath = formatPath(config.update[env]);
+            const backupPath = formatPath(config.backup[env]);
             //获取更新目标程序的根路径
             const updateName = basename(updatePath);
 
@@ -75,7 +75,7 @@ export async function generatePackage(sourcePath, targetPath, projectName, confi
                             // 如果relPath是以bin开头的 同时 haveBin 为true 则传入两份路径
                             if (haveBin && relPath.startsWith('bin')) {
                                 const BinPath = relPath.replace('bin', 'Bin');
-                                filesToBackup.push(relPath);
+                                filesToBackup.push(BinPath);
                             }
                             filesToBackup.push(relPath)
                         }

@@ -16,6 +16,7 @@ class WindowManager {
         const win = new BrowserWindow({
             width: 1000,
             height: 700,
+
             webPreferences: {
                 preload: isDev
                     ? join(app.getAppPath(), 'src/electron/preload.js')

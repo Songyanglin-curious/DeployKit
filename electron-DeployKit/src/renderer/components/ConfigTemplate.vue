@@ -18,11 +18,11 @@
                             <n-input :value="model.update[env]" @update:value="handleFieldUpdate('update', env, $event)" :placeholder="`请输入${env}的更新路径`" @blur="handleInputChange" />
                         </n-form-item>
                     </n-gi>
-                    <n-gi>
+                    <!-- <n-gi>
                         <n-form-item :label="`${env} - 数据库配置路径`" :path="`dbConfig.${env}`">
                             <n-input :value="model.dbConfig[env]" @update:value="handleFieldUpdate('dbConfig', env, $event)" :placeholder="`请输入${env}的数据库配置路径`" @blur="handleInputChange" />
                         </n-form-item>
-                    </n-gi>
+                    </n-gi> -->
                     <n-gi>
                         <n-form-item :label="`${env} - 启用Bin`" :path="`Bin.${env}`">
                             <n-switch :value="model.Bin[env]" @update:value="handleFieldUpdate('Bin', env, $event)" />
