@@ -20,11 +20,9 @@ extraResources:
   - from: resources/configs/
     to: resources/configs/
 
-asar: false
-# 确保不压缩代码
-compression: store
-# 禁用asar压缩
-asarUnpack: ['**/*']
+asar: true
+# 启用最大压缩
+compression: maximum
 
 win:
   target: nsis
