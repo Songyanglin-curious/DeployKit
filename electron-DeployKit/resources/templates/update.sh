@@ -75,11 +75,11 @@ while IFS= read -r -d '' file; do
                     bin_target_file="${target_file//bin/Bin}"
                     mkdir -p "$(dirname "$bin_target_file")"
                     if cp -p "$file" "$bin_target_file"; then
-                        echo -e "${GREEN}复制到Bin目录: ${rel_path//bin/Bin}${NC}"
-                        echo "[$(date +'%Y-%m-%d %H:%M:%S')] 复制到Bin目录: ${rel_path//bin/Bin}" >> "$LOG_FILE"
+                        echo -e "${GREEN}更新文件: ${rel_path//bin/Bin}${NC}"
+                        echo "[$(date +'%Y-%m-%d %H:%M:%S')] 更新文件: ${rel_path//bin/Bin}" >> "$LOG_FILE"
                     else
-                        echo -e "${RED}错误: 复制到Bin目录失败: ${rel_path//bin/Bin}${NC}"
-                        echo "[$(date +'%Y-%m-%d %H:%M:%S')] 错误: 复制到Bin目录失败: ${rel_path//bin/Bin}" >> "$LOG_FILE"
+                        echo -e "${RED}错误: 更新文件失败: ${rel_path//bin/Bin}${NC}"
+                        echo "[$(date +'%Y-%m-%d %H:%M:%S')] 错误: 更新文件失败: ${rel_path//bin/Bin}" >> "$LOG_FILE"
                     fi
                 fi
             else
@@ -104,11 +104,11 @@ while IFS= read -r -d '' file; do
                     bin_target_file="${target_file//bin/Bin}"
                     mkdir -p "$(dirname "$bin_target_file")"
                     if cp -p "$file" "$bin_target_file"; then
-                        echo -e "${GREEN}复制到Bin目录: ${rel_path//bin/Bin}${NC}"
-                        echo "[$(date +'%Y-%m-%d %H:%M:%S')] 复制到Bin目录: ${rel_path//bin/Bin}" >> "$LOG_FILE"
+                        echo -e "${GREEN}添加文件: ${rel_path//bin/Bin}${NC}"
+                        echo "[$(date +'%Y-%m-%d %H:%M:%S')] 添加文件: ${rel_path//bin/Bin}" >> "$LOG_FILE"
                     else
-                        echo -e "${RED}错误: 复制到Bin目录失败: ${rel_path//bin/Bin}${NC}"
-                        echo "[$(date +'%Y-%m-%d %H:%M:%S')] 错误: 复制到Bin目录失败: ${rel_path//bin/Bin}" >> "$LOG_FILE"
+                        echo -e "${RED}错误: 添加文件失败: ${rel_path//bin/Bin}${NC}"
+                        echo "[$(date +'%Y-%m-%d %H:%M:%S')] 错误: 添加文件失败: ${rel_path//bin/Bin}" >> "$LOG_FILE"
                     fi
                 fi
             else
