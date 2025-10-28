@@ -28,11 +28,11 @@
                             <n-switch :value="model.Bin[env]" @update:value="handleFieldUpdate('Bin', env, $event)" />
                         </n-form-item>
                     </n-gi>
-                    <n-gi :span="2">
+                    <!-- <n-gi :span="2">
                         <n-form-item :label="`${env} - 敏感文件列表`" :path="`fragileFiles.${env}`">
                             <n-dynamic-tags :value="model.fragileFiles[env]" @update:value="handleFilesUpdate(env, $event)" />
                         </n-form-item>
-                    </n-gi>
+                    </n-gi> -->
                 </n-grid>
             </div>
         </n-card>
@@ -153,6 +153,13 @@ const rules = computed(() => {
                 },
                 message: '路径必须以 / 开头',
                 trigger: ['input', 'blur']
+            },
+            {
+                validator: (rule, value) => {
+                    return value && value.endWith('/')
+                },
+                message: '路径必须以 / 结尾',
+                trigger: ['input', 'blur']
             }
         ]
 
@@ -168,6 +175,13 @@ const rules = computed(() => {
                     return value && value.startsWith('/')
                 },
                 message: '路径必须以 / 开头',
+                trigger: ['input', 'blur']
+            },
+            {
+                validator: (rule, value) => {
+                    return value && value.endWith('/')
+                },
+                message: '路径必须以 / 结尾',
                 trigger: ['input', 'blur']
             }
         ]
