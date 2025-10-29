@@ -58,8 +58,11 @@ export async function generatePackage(sourcePath, targetPath, projectName, confi
                 let content = fs.readFileSync(backupTemplatePath, 'utf8')
                 // 注入环境变量并确保跨平台路径
                 content = content.replace("{BACKUP_PATH}", backupPath)
-                content = content.replace("{UPDATE_PATH}", updatePath)
-                content = content.replace("{UPDATE_NAME}", updateName)
+                content = content.replace(/{UPDATE_PATH}/g, updatePath)
+                content = content.replace(/{UPDATE_NAME}/g, updateName)
+                content = content.replace(/{PACKAGE_NAME}/g, sourceDirName)
+                // 添加HAVE_BIN变量
+                content = content.replace(/{HAVE_BIN}/g, haveBin ? 'true' : 'false')
 
                 // 收集要备份的文件列表
                 const filesToBackup = []
@@ -82,13 +85,13 @@ export async function generatePackage(sourcePath, targetPath, projectName, confi
                     }
                 }
 
-                walkDir(sourcePath)
+                // walkDir(sourcePath)
 
                 // 替换文件列表占位符
-                content = content.replace(
-                    '{FILES_TO_BACKUP}',
-                    filesToBackup.map(f => `"${f.replace(/"/g, '\\"')}"`).join(' ')
-                )
+                // content = content.replace(
+                //     '{FILES_TO_BACKUP}',
+                //     filesToBackup.map(f => `"${f.replace(/"/g, '\\"')}"`).join(' ')
+                // )
 
                 fs.writeFileSync(backupTargetPath, content, { encoding: 'utf8' })
                 fs.chmodSync(backupTargetPath, 0o755)

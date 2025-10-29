@@ -156,7 +156,7 @@ const rules = computed(() => {
             },
             {
                 validator: (rule, value) => {
-                    return value && value.endWith('/')
+                    return value && value.endsWith('/')
                 },
                 message: '路径必须以 / 结尾',
                 trigger: ['input', 'blur']
@@ -179,7 +179,7 @@ const rules = computed(() => {
             },
             {
                 validator: (rule, value) => {
-                    return value && value.endWith('/')
+                    return value && value.endsWith('/')
                 },
                 message: '路径必须以 / 结尾',
                 trigger: ['input', 'blur']

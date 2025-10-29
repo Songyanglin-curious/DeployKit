@@ -20,13 +20,13 @@ echo "[$(date +'%Y-%m-%d %H:%M:%S')] 执行用户: $(whoami)" >> "$LOG_FILE"
 # 检查必要的日志文件
 if [ ! -f "$UPDATE_LOG" ]; then
     echo "[$(date +'%Y-%m-%d %H:%M:%S')] 错误: 更新日志文件不存在: $UPDATE_LOG" >> "$LOG_FILE"
-    echo "错误: 更新日志文件不存在: $UPDATE_LOG"
+    echo -e "${RED}错误: 更新日志文件不存在: $UPDATE_LOG${NC}"
     exit 1
 fi
 
 if [ ! -f "$BACKUP_LOG" ]; then
     echo "[$(date +'%Y-%m-%d %H:%M:%S')] 错误: 备份日志文件不存在: $BACKUP_LOG" >> "$LOG_FILE"
-    echo "错误: 备份日志文件不存在: $BACKUP_LOG"
+    echo -e "${RED}错误: 备份日志文件不存在: $BACKUP_LOG${NC}"
     exit 1
 fi
 
@@ -41,15 +41,13 @@ BACKUP_DIR="$BACKUP_BASE_DIR/$BACKUP_VERSION"
 
 if [ -z "$BACKUP_DIR" ]; then
     echo "[$(date +'%Y-%m-%d %H:%M:%S')] 错误: 无法从备份日志中提取备份目录" >> "$LOG_FILE"
-    echo "错误: 无法从备份日志中提取备份目录"
+    echo -e "${RED}错误: 无法从备份日志中提取备份目录${NC}"
     exit 1
 fi
 
 echo "[$(date +'%Y-%m-%d %H:%M:%S')] 项目名称: $PROJECT_NAME" >> "$LOG_FILE"
 echo "[$(date +'%Y-%m-%d %H:%M:%S')] 备份目录: $BACKUP_DIR" >> "$LOG_FILE"
 echo "[$(date +'%Y-%m-%d %H:%M:%S')] 目标路径: $UPDATE_PATH" >> "$LOG_FILE"
-
-
 
 # 初始化统计变量
 TOTAL_FILES=0
@@ -88,38 +86,39 @@ while read -r line; do
         if [ -f "$backup_file" ]; then
             mkdir -p "$(dirname "$target_file")"
             if cp -p "$backup_file" "$target_file"; then
-                echo "还原文件: $file_path"
+                echo -e "${GREEN}还原文件: $file_path${NC}"
                 echo "[$(date +'%Y-%m-%d %H:%M:%S')] 成功还原文件: $file_path" >> "$LOG_FILE"
                 ((RESTORED_FILES++))
             else
+                echo -e "${RED}错误: 还原文件失败: $file_path${NC}"
                 echo "[$(date +'%Y-%m-%d %H:%M:%S')] 错误: 还原文件失败: $file_path" >> "$LOG_FILE"
             fi
         else
+            echo -e "${RED}错误: 备份文件不存在: $backup_file${NC}"
             echo "[$(date +'%Y-%m-%d %H:%M:%S')] 错误: 备份文件不存在: $backup_file" >> "$LOG_FILE"
-            echo "错误: 备份文件不存在: $backup_file"
         fi
     elif [[ "$line" =~ "添加文件:" ]]; then
         # 处理新增的文件 - 删除
-
         file_path=$(echo "$line" | awk -F': ' '{print $2}' | sed "s/ (新文件)//")
         target_file="$UPDATE_PATH/$file_path"
         
         if [ -f "$target_file" ]; then
             if rm "$target_file"; then
-                echo "删除文件: $file_path"
+                echo -e "${RED}删除文件: $file_path${NC}"
                 echo "[$(date +'%Y-%m-%d %H:%M:%S')] 删除文件: $file_path" >> "$LOG_FILE"
                 ((REMOVED_FILES++))
             else
+                echo -e "${RED}错误: 删除文件失败: $file_path${NC}"
                 echo "[$(date +'%Y-%m-%d %H:%M:%S')] 错误: 删除文件失败: $file_path" >> "$LOG_FILE"
             fi
         else
+            echo -e "${YELLOW}警告: 目标文件不存在: $target_file${NC}"
             echo "[$(date +'%Y-%m-%d %H:%M:%S')] 警告: 目标文件不存在: $target_file" >> "$LOG_FILE"
         fi
     elif [[ "$line" =~ "跳过文件:" ]]; then
         # 处理未更改的文件 - 跳过
-
         file_path=$(echo "$line" | awk -F': ' '{print $2}' | sed "s/ (内容无变化)//")
-        echo "跳过文件: $file_path"
+        echo -e "${YELLOW}跳过文件: $file_path${NC}"
         echo "[$(date +'%Y-%m-%d %H:%M:%S')] 跳过文件: $file_path" >> "$LOG_FILE"
         ((SKIPPED_FILES++))
     fi
