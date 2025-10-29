@@ -63,3 +63,12 @@ export async function deleteConfigByName(configFileName) {
     }
 }
 
+export async function getConfigPath() {
+    try {
+        return PATHS.CONFIGS;
+    } catch (error) {
+        log.error('获取配置文件路径失败:', error);
+        throw new Error('获取配置文件路径失败');
+    }
+}
+

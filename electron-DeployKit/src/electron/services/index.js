@@ -1,5 +1,5 @@
 import { getSelectFolderPath } from './commonService';
-import { getConfigFiles, getConfigContentByName, saveConfigContent,deleteConfigByName } from './configService';
+import { getConfigFiles, getConfigContentByName, saveConfigContent, deleteConfigByName, getConfigPath } from './configService';
 import { generatePackage } from './packageService';
 
 export {
@@ -7,6 +7,7 @@ export {
     getConfigFiles,
     saveConfigContent,
     deleteConfigByName,
+    getConfigPath,
     getConfigContentByName,
     generatePackage
 }

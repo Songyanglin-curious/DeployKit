@@ -78,6 +78,10 @@ class ElectronAPI {
         const result = await this._invoke('deleteProjectConfig', configFileName);
         return result
     }
+    async getConfigPath() {
+        const result = await this._invoke('getConfigPath',);
+        return result
+    }
 }
 
 // 创建单例

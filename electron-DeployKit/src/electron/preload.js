@@ -6,6 +6,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getProjectConfig: (projectName) => ipcRenderer.invoke('get-project-config', projectName),
     saveProjectConfig: (configFileName, config) => ipcRenderer.invoke('save-project-config', configFileName, config),
     deleteProjectConfig: (configFileName) => ipcRenderer.invoke('delete-project-config', configFileName),
+    getConfigPath: () => ipcRenderer.invoke('get-config-path'),
 
     getSelectFolderPath: (options) => ipcRenderer.invoke('get-select-folder-path', options),
 

@@ -24,7 +24,9 @@
                     <n-button type="warning" @click="deleteProjectConfig()">
                         删除配置
                     </n-button>
-
+                    <n-button @click="getConfigPath()">
+                        获取配置文件路径
+                    </n-button>
                 </n-flex>
 
             </n-flex>
@@ -187,6 +189,17 @@ const generatePackage = async () => {
     } catch (error) {
         message.error('根据环境变量生成不同更新包更新文件失败:' + error);
         console.error('根据环境变量生成不同更新包更新文件失败:', error);
+    }
+}
+const getConfigPath = async function () {
+    try {
+        const result = await API.getConfigPath();
+        // 写入粘贴板
+        navigator.clipboard.writeText(result);
+        message.success("配置文件路径已复制到粘贴板！");
+    } catch (error) {
+        message.error('获取配置文件路径失败:' + error);
+
     }
 }
 
