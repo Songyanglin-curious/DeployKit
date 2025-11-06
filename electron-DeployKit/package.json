@@ -1,7 +1,7 @@
 {
     "name": "deploykit",
-    "version": "0.0.2",
-    "description": "更新包生成程序demo版本",
+    "version": "1.0.0",
+    "description": "更新包脚本生成程序v1.0.0",
     "main": "dist-electron/index.js",
     "scripts": {
         "dev": "cross-env NODE_ENV=development vite dev",

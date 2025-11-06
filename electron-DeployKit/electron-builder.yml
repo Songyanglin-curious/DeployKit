@@ -34,7 +34,7 @@ nsis:
   createDesktopShortcut: true
   createStartMenuShortcut: true
   language: '2052'
-  deleteAppDataOnUninstall: true
+  deleteAppDataOnUninstall: false
   installerIcon: assets/icon.ico
   uninstallerIcon: assets/icon.ico
   installerHeaderIcon: assets/icon.ico

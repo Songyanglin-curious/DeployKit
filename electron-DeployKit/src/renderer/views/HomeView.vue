@@ -138,13 +138,12 @@ const targetPackagePath = ref('');
 
 const selectTargetPackagePath = async () => {
     try {
+
         const result = await API.getSelectFolderPath({
             title: '选择更新包保存路径',
             defaultPath: targetPackagePath.value
         });
-        if (result.success) {
-            targetPackagePath.value = result;
-        }
+        targetPackagePath.value = result;
     } catch (error) {
 
     }
